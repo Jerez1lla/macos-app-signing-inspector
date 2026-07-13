@@ -127,7 +127,6 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let viewModel = ApplicationBrowserViewModel(
             picker: picker,
             metadataInspector: QueueMetadataInspector(metadataResults: [
-                metadata(for: invalidURL, displayName: "Invalid"),
                 metadata(for: appURL, displayName: "Valid")
             ]),
             iconLoader: StubIconLoader()
