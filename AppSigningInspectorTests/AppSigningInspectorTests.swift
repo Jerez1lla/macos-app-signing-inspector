@@ -15,6 +15,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .cancelled),
             metadataInspector: StubMetadataInspector(),
+            codeSignatureInspector: StubCodeSignatureInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -29,6 +30,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .selected(appURL)),
             metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "Example")),
+            codeSignatureInspector: StubCodeSignatureInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -50,6 +52,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let viewModel = ApplicationBrowserViewModel(
             picker: picker,
             metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "Existing")),
+            codeSignatureInspector: StubCodeSignatureInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -67,6 +70,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .selected(invalidURL)),
             metadataInspector: StubMetadataInspector(),
+            codeSignatureInspector: StubCodeSignatureInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -85,6 +89,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .selected(missingURL)),
             metadataInspector: StubMetadataInspector(),
+            codeSignatureInspector: StubCodeSignatureInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -103,6 +108,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .selected(appURL)),
             metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "NoIcon")),
+            codeSignatureInspector: StubCodeSignatureInspector(),
             iconLoader: StubIconLoader(error: ApplicationBrowserError.iconUnavailable(appURL))
         )
 
@@ -129,6 +135,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
             metadataInspector: QueueMetadataInspector(metadataResults: [
                 metadata(for: appURL, displayName: "Valid")
             ]),
+            codeSignatureInspector: StubCodeSignatureInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -146,6 +153,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .selected(appURL)),
             metadataInspector: StubMetadataInspector(error: ApplicationMetadataError.infoPlistUnreadable(appURL)),
+            codeSignatureInspector: StubCodeSignatureInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -172,6 +180,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
                 metadata(for: firstURL, displayName: "First"),
                 metadata(for: secondURL, displayName: "Second")
             ]),
+            codeSignatureInspector: StubCodeSignatureInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -190,6 +199,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .selected(appURL)),
             metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "Copyable")),
+            codeSignatureInspector: StubCodeSignatureInspector(),
             iconLoader: StubIconLoader(),
             clipboardWriter: clipboard
         )
@@ -416,6 +426,25 @@ private struct StubIconLoader: ApplicationIconLoading {
         }
 
         return NSImage(size: NSSize(width: 32, height: 32))
+    }
+}
+
+private struct StubCodeSignatureInspector: CodeSignatureInspecting {
+    func inspect(applicationAt applicationURL: URL) async throws -> CodeSignatureInfo {
+        CodeSignatureInfo(
+            signingIdentifier: nil,
+            teamIdentifier: nil,
+            authorities: [],
+            format: nil,
+            codeDirectoryVersion: nil,
+            flags: nil,
+            hardenedRuntimeEnabled: nil,
+            timestamp: nil,
+            signatureStatus: .unsigned,
+            signingOrigin: .unknown,
+            diagnostics: [],
+            processResults: []
+        )
     }
 }
 
