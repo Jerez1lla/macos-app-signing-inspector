@@ -1,7 +1,40 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var viewModel = ApplicationBrowserViewModel()
+    @State private var selectedWorkspace: WorkspaceDestination? = .defaultDestination
+    @StateObject private var inspectorViewModel: ApplicationBrowserViewModel
+    @StateObject private var policyBuilderViewModel: PolicyBuilderViewModel
+
+    init(
+        inspectorViewModel: ApplicationBrowserViewModel = ApplicationBrowserViewModel(),
+        policyBuilderViewModel: PolicyBuilderViewModel = PolicyBuilderViewModel()
+    ) {
+        _inspectorViewModel = StateObject(wrappedValue: inspectorViewModel)
+        _policyBuilderViewModel = StateObject(wrappedValue: policyBuilderViewModel)
+    }
+
+    var body: some View {
+        NavigationSplitView {
+            List(WorkspaceDestination.allCases, selection: $selectedWorkspace) { destination in
+                Label(destination.title, systemImage: destination.systemImage)
+                    .tag(destination)
+            }
+            .listStyle(.sidebar)
+            .navigationSplitViewColumnWidth(min: 140, ideal: 165, max: 200)
+        } detail: {
+            switch selectedWorkspace ?? .defaultDestination {
+            case .inspector:
+                InspectorView(viewModel: inspectorViewModel)
+            case .policyBuilder:
+                PolicyBuilderView(viewModel: policyBuilderViewModel)
+            }
+        }
+        .frame(minWidth: 620, minHeight: 560)
+    }
+}
+
+private struct InspectorView: View {
+    @ObservedObject var viewModel: ApplicationBrowserViewModel
 
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
@@ -50,7 +83,7 @@ struct ContentView: View {
             Spacer()
         }
         .padding(32)
-        .frame(minWidth: 620, minHeight: 560)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
     }
 
     private var emptyStateView: some View {

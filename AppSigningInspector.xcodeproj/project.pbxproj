@@ -43,6 +43,23 @@
 		111111111111111111111122 /* ArchitectureAssessmentParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111030 /* ArchitectureAssessmentParserTests.swift */; };
 		111111111111111111111123 /* ApplicationSecurityViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111031 /* ApplicationSecurityViewModelTests.swift */; };
 		111111111111111111111124 /* SecuritySectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111032 /* SecuritySectionView.swift */; };
+		111111111111111111111125 /* DDMApplicationSettingsDeclaration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111033 /* DDMApplicationSettingsDeclaration.swift */; };
+		111111111111111111111126 /* PolicyEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111034 /* PolicyEntry.swift */; };
+		111111111111111111111127 /* WorkspaceDestination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111035 /* WorkspaceDestination.swift */; };
+		111111111111111111111128 /* DDMDeclarationGenerating.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111036 /* DDMDeclarationGenerating.swift */; };
+		111111111111111111111129 /* JSONExporting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111037 /* JSONExporting.swift */; };
+		11111111111111111111112A /* PolicyApplicationPicking.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111038 /* PolicyApplicationPicking.swift */; };
+		11111111111111111111112B /* DDMDeclarationGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111039 /* DDMDeclarationGenerator.swift */; };
+		11111111111111111111112C /* JSONExportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111103A /* JSONExportService.swift */; };
+		11111111111111111111112D /* PolicyBuilderViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111103B /* PolicyBuilderViewModel.swift */; };
+		11111111111111111111112E /* PolicyBuilderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111103C /* PolicyBuilderView.swift */; };
+		11111111111111111111112F /* DDMDeclarationGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111103D /* DDMDeclarationGeneratorTests.swift */; };
+		111111111111111111111130 /* PolicyBuilderViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111103E /* PolicyBuilderViewModelTests.swift */; };
+		111111111111111111111131 /* WorkspaceNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111103F /* WorkspaceNavigationTests.swift */; };
+		111111111111111111111132 /* PolicyRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111040 /* PolicyRule.swift */; };
+		111111111111111111111133 /* PolicyRuleValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111041 /* PolicyRuleValidator.swift */; };
+		111111111111111111111134 /* PolicyRuleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111042 /* PolicyRuleEditorView.swift */; };
+		111111111111111111111135 /* PolicyRuleValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111043 /* PolicyRuleValidatorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -94,6 +111,23 @@
 		111111111111111111111030 /* ArchitectureAssessmentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchitectureAssessmentParserTests.swift; sourceTree = "<group>"; };
 		111111111111111111111031 /* ApplicationSecurityViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSecurityViewModelTests.swift; sourceTree = "<group>"; };
 		111111111111111111111032 /* SecuritySectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecuritySectionView.swift; sourceTree = "<group>"; };
+		111111111111111111111033 /* DDMApplicationSettingsDeclaration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDMApplicationSettingsDeclaration.swift; sourceTree = "<group>"; };
+		111111111111111111111034 /* PolicyEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyEntry.swift; sourceTree = "<group>"; };
+		111111111111111111111035 /* WorkspaceDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceDestination.swift; sourceTree = "<group>"; };
+		111111111111111111111036 /* DDMDeclarationGenerating.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDMDeclarationGenerating.swift; sourceTree = "<group>"; };
+		111111111111111111111037 /* JSONExporting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONExporting.swift; sourceTree = "<group>"; };
+		111111111111111111111038 /* PolicyApplicationPicking.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyApplicationPicking.swift; sourceTree = "<group>"; };
+		111111111111111111111039 /* DDMDeclarationGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDMDeclarationGenerator.swift; sourceTree = "<group>"; };
+		11111111111111111111103A /* JSONExportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JSONExportService.swift; sourceTree = "<group>"; };
+		11111111111111111111103B /* PolicyBuilderViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyBuilderViewModel.swift; sourceTree = "<group>"; };
+		11111111111111111111103C /* PolicyBuilderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyBuilderView.swift; sourceTree = "<group>"; };
+		11111111111111111111103D /* DDMDeclarationGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDMDeclarationGeneratorTests.swift; sourceTree = "<group>"; };
+		11111111111111111111103E /* PolicyBuilderViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyBuilderViewModelTests.swift; sourceTree = "<group>"; };
+		11111111111111111111103F /* WorkspaceNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceNavigationTests.swift; sourceTree = "<group>"; };
+		111111111111111111111040 /* PolicyRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRule.swift; sourceTree = "<group>"; };
+		111111111111111111111041 /* PolicyRuleValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRuleValidator.swift; sourceTree = "<group>"; };
+		111111111111111111111042 /* PolicyRuleEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRuleEditorView.swift; sourceTree = "<group>"; };
+		111111111111111111111043 /* PolicyRuleValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRuleValidatorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -153,8 +187,12 @@
 				111111111111111111111012 /* ApplicationMetadata.swift */,
 				11111111111111111111102A /* ApplicationSecurityAssessment.swift */,
 				111111111111111111111018 /* CodeSignatureInfo.swift */,
+				111111111111111111111033 /* DDMApplicationSettingsDeclaration.swift */,
+				111111111111111111111034 /* PolicyEntry.swift */,
+				111111111111111111111040 /* PolicyRule.swift */,
 				111111111111111111111017 /* ProcessResult.swift */,
 				111111111111111111111007 /* SelectedApplication.swift */,
+				111111111111111111111035 /* WorkspaceDestination.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -163,6 +201,8 @@
 			isa = PBXGroup;
 			children = (
 				111111111111111111111002 /* ContentView.swift */,
+				11111111111111111111103C /* PolicyBuilderView.swift */,
+				111111111111111111111042 /* PolicyRuleEditorView.swift */,
 				111111111111111111111032 /* SecuritySectionView.swift */,
 			);
 			path = Views;
@@ -172,6 +212,7 @@
 			isa = PBXGroup;
 			children = (
 				111111111111111111111011 /* ApplicationBrowserViewModel.swift */,
+				11111111111111111111103B /* PolicyBuilderViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -185,10 +226,13 @@
 				111111111111111111111010 /* ApplicationPickerService.swift */,
 				11111111111111111111102E /* ApplicationSecurityAssessor.swift */,
 				111111111111111111111023 /* CodeSignatureOutputParser.swift */,
+				111111111111111111111039 /* DDMDeclarationGenerator.swift */,
 				111111111111111111111028 /* DesignatedRequirementOutputParser.swift */,
 				111111111111111111111022 /* FoundationProcessRunner.swift */,
 				11111111111111111111102C /* GatekeeperAssessmentParser.swift */,
+				11111111111111111111103A /* JSONExportService.swift */,
 				111111111111111111111016 /* PasteboardClipboardWriter.swift */,
+				111111111111111111111041 /* PolicyRuleValidator.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -202,7 +246,10 @@
 				111111111111111111111014 /* ClipboardWriting.swift */,
 				111111111111111111111020 /* CodeSignatureInspecting.swift */,
 				111111111111111111111021 /* CodeSignatureOutputParsing.swift */,
+				111111111111111111111036 /* DDMDeclarationGenerating.swift */,
 				111111111111111111111027 /* DesignatedRequirementOutputParsing.swift */,
+				111111111111111111111037 /* JSONExporting.swift */,
+				111111111111111111111038 /* PolicyApplicationPicking.swift */,
 				111111111111111111111019 /* ProcessRunning.swift */,
 				11111111111111111111102B /* SecurityAssessing.swift */,
 			);
@@ -232,8 +279,12 @@
 				111111111111111111111031 /* ApplicationSecurityViewModelTests.swift */,
 				111111111111111111111030 /* ArchitectureAssessmentParserTests.swift */,
 				111111111111111111111025 /* CodeSignatureOutputParserTests.swift */,
+				11111111111111111111103D /* DDMDeclarationGeneratorTests.swift */,
 				111111111111111111111029 /* DesignatedRequirementOutputParserTests.swift */,
 				11111111111111111111102F /* GatekeeperAssessmentParserTests.swift */,
+				11111111111111111111103E /* PolicyBuilderViewModelTests.swift */,
+				111111111111111111111043 /* PolicyRuleValidatorTests.swift */,
+				11111111111111111111103F /* WorkspaceNavigationTests.swift */,
 				111111111111111111111701 /* Fixtures */,
 			);
 			path = AppSigningInspectorTests;
@@ -363,16 +414,29 @@
 				111111111111111111111115 /* CodeSignatureOutputParser.swift in Sources */,
 				111111111111111111111113 /* CodeSignatureOutputParsing.swift in Sources */,
 				111111111111111111111102 /* ContentView.swift in Sources */,
+				111111111111111111111125 /* DDMApplicationSettingsDeclaration.swift in Sources */,
+				111111111111111111111128 /* DDMDeclarationGenerating.swift in Sources */,
+				11111111111111111111112B /* DDMDeclarationGenerator.swift in Sources */,
 				11111111111111111111111A /* DesignatedRequirementOutputParser.swift in Sources */,
 				111111111111111111111119 /* DesignatedRequirementOutputParsing.swift in Sources */,
 				111111111111111111111114 /* FoundationProcessRunner.swift in Sources */,
 				11111111111111111111111E /* GatekeeperAssessmentParser.swift in Sources */,
+				111111111111111111111129 /* JSONExporting.swift in Sources */,
+				11111111111111111111112C /* JSONExportService.swift in Sources */,
 				11111111111111111111110E /* PasteboardClipboardWriter.swift in Sources */,
+				11111111111111111111112A /* PolicyApplicationPicking.swift in Sources */,
+				11111111111111111111112D /* PolicyBuilderViewModel.swift in Sources */,
+				11111111111111111111112E /* PolicyBuilderView.swift in Sources */,
+				111111111111111111111126 /* PolicyEntry.swift in Sources */,
+				111111111111111111111132 /* PolicyRule.swift in Sources */,
+				111111111111111111111133 /* PolicyRuleValidator.swift in Sources */,
+				111111111111111111111134 /* PolicyRuleEditorView.swift in Sources */,
 				11111111111111111111110F /* ProcessResult.swift in Sources */,
 				111111111111111111111111 /* ProcessRunning.swift in Sources */,
 				111111111111111111111124 /* SecuritySectionView.swift in Sources */,
 				11111111111111111111111D /* SecurityAssessing.swift in Sources */,
 				111111111111111111111105 /* SelectedApplication.swift in Sources */,
+				111111111111111111111127 /* WorkspaceDestination.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -385,8 +449,12 @@
 				111111111111111111111123 /* ApplicationSecurityViewModelTests.swift in Sources */,
 				111111111111111111111122 /* ArchitectureAssessmentParserTests.swift in Sources */,
 				111111111111111111111117 /* CodeSignatureOutputParserTests.swift in Sources */,
+				11111111111111111111112F /* DDMDeclarationGeneratorTests.swift in Sources */,
 				11111111111111111111111B /* DesignatedRequirementOutputParserTests.swift in Sources */,
 				111111111111111111111121 /* GatekeeperAssessmentParserTests.swift in Sources */,
+				111111111111111111111130 /* PolicyBuilderViewModelTests.swift in Sources */,
+				111111111111111111111135 /* PolicyRuleValidatorTests.swift in Sources */,
+				111111111111111111111131 /* WorkspaceNavigationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
