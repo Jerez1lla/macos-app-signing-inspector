@@ -25,7 +25,11 @@ final class ApplicationCodeSignatureViewModelTests: XCTestCase {
     @MainActor
     func testSuccessfulSignatureResultIsStored() async throws {
         let appURL = try makeApplicationBundle(named: "Signed")
-        let expectedInfo = signatureInfo(identifier: "com.example.signed")
+        let requirement = "identifier \"com.example.signed\" and anchor apple generic"
+        let expectedInfo = signatureInfo(
+            identifier: "com.example.signed",
+            requirementInspection: requirementInspection(requirement: requirement)
+        )
         let viewModel = makeViewModel(
             pickerResults: [.selected(appURL)],
             metadataResults: [metadata(for: appURL, displayName: "Signed")],
@@ -35,6 +39,7 @@ final class ApplicationCodeSignatureViewModelTests: XCTestCase {
         await viewModel.selectApplication()
 
         XCTAssertEqual(viewModel.codeSignatureInfo, expectedInfo)
+        XCTAssertEqual(viewModel.codeSignatureInfo?.designatedRequirement, requirement)
         XCTAssertNil(viewModel.signatureErrorMessage)
         XCTAssertNil(viewModel.signatureErrorDetails)
     }
@@ -62,8 +67,14 @@ final class ApplicationCodeSignatureViewModelTests: XCTestCase {
     func testSelectingAnotherApplicationReplacesSignatureState() async throws {
         let firstURL = try makeApplicationBundle(named: "First")
         let secondURL = try makeApplicationBundle(named: "Second")
-        let firstInfo = signatureInfo(identifier: "com.example.first")
-        let secondInfo = signatureInfo(identifier: "com.example.second")
+        let firstInfo = signatureInfo(
+            identifier: "com.example.first",
+            requirementInspection: requirementInspection(requirement: "identifier \"com.example.first\"")
+        )
+        let secondInfo = signatureInfo(
+            identifier: "com.example.second",
+            requirementInspection: requirementInspection(requirement: "identifier \"com.example.second\"")
+        )
         let viewModel = makeViewModel(
             pickerResults: [.selected(firstURL), .selected(secondURL)],
             metadataResults: [
@@ -83,6 +94,7 @@ final class ApplicationCodeSignatureViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.selectedApplication?.url, secondURL)
         XCTAssertEqual(viewModel.codeSignatureInfo, secondInfo)
+        XCTAssertEqual(viewModel.codeSignatureInfo?.designatedRequirement, "identifier \"com.example.second\"")
     }
 
     @MainActor
@@ -143,7 +155,11 @@ final class ApplicationCodeSignatureViewModelTests: XCTestCase {
     func testSignatureCopyActionsCopyOnlyAvailableValues() async throws {
         let appURL = try makeApplicationBundle(named: "CopySigning")
         let clipboard = ViewModelClipboardWriter()
-        let info = signatureInfo(identifier: "com.example.copy")
+        let requirement = "identifier \"com.example.copy\" and anchor apple generic"
+        let info = signatureInfo(
+            identifier: "com.example.copy",
+            requirementInspection: requirementInspection(requirement: requirement)
+        )
         let viewModel = makeViewModel(
             pickerResults: [.selected(appURL)],
             metadataResults: [metadata(for: appURL, displayName: "CopySigning")],
@@ -154,15 +170,76 @@ final class ApplicationCodeSignatureViewModelTests: XCTestCase {
         await viewModel.selectApplication()
         viewModel.copySigningIdentifier()
         viewModel.copyTeamIdentifier()
+        viewModel.copyDesignatedRequirement()
         viewModel.copySigningAuthority(info.authorities[0])
         viewModel.copyRawSigningDiagnostics()
 
         XCTAssertEqual(clipboard.copiedValues, [
             "com.example.copy",
             "ABCDE12345",
+            requirement,
             "Developer ID Application: Example Corporation (ABCDE12345)",
             info.rawDiagnostics
         ])
+    }
+
+    @MainActor
+    func testMissingRequirementPreservesOtherSignatureInformationAndDoesNotCopyPlaceholder() async throws {
+        let appURL = try makeApplicationBundle(named: "NoRequirement")
+        let clipboard = ViewModelClipboardWriter()
+        let info = signatureInfo(
+            identifier: "com.example.no-requirement",
+            requirementInspection: requirementInspection(status: .notPresent)
+        )
+        let viewModel = makeViewModel(
+            pickerResults: [.selected(appURL)],
+            metadataResults: [metadata(for: appURL, displayName: "NoRequirement")],
+            signatureInspector: QueueViewModelSignatureInspector(results: [.success(info)]),
+            clipboardWriter: clipboard
+        )
+
+        await viewModel.selectApplication()
+        viewModel.copyDesignatedRequirement()
+
+        XCTAssertEqual(viewModel.codeSignatureInfo?.signingIdentifier, "com.example.no-requirement")
+        XCTAssertEqual(viewModel.codeSignatureInfo?.teamIdentifier, "ABCDE12345")
+        XCTAssertNil(viewModel.codeSignatureInfo?.designatedRequirement)
+        XCTAssertEqual(viewModel.codeSignatureInfo?.designatedRequirementInspection?.status, .notPresent)
+        XCTAssertTrue(clipboard.copiedValues.isEmpty)
+    }
+
+    @MainActor
+    func testRequirementErrorClearsAfterLaterSuccessfulInspection() async throws {
+        let firstURL = try makeApplicationBundle(named: "RequirementError")
+        let secondURL = try makeApplicationBundle(named: "RequirementRecovered")
+        let failedInfo = signatureInfo(
+            identifier: "com.example.requirement-error",
+            requirementInspection: requirementInspection(status: .executionFailed)
+        )
+        let recoveredRequirement = "identifier \"com.example.requirement-recovered\" and anchor apple generic"
+        let recoveredInfo = signatureInfo(
+            identifier: "com.example.requirement-recovered",
+            requirementInspection: requirementInspection(requirement: recoveredRequirement)
+        )
+        let viewModel = makeViewModel(
+            pickerResults: [.selected(firstURL), .selected(secondURL)],
+            metadataResults: [
+                metadata(for: firstURL, displayName: "RequirementError"),
+                metadata(for: secondURL, displayName: "RequirementRecovered")
+            ],
+            signatureInspector: QueueViewModelSignatureInspector(results: [
+                .success(failedInfo),
+                .success(recoveredInfo)
+            ])
+        )
+
+        await viewModel.selectApplication()
+        XCTAssertEqual(viewModel.codeSignatureInfo?.designatedRequirementInspection?.status, .executionFailed)
+
+        await viewModel.selectApplication()
+
+        XCTAssertEqual(viewModel.codeSignatureInfo?.designatedRequirement, recoveredRequirement)
+        XCTAssertEqual(viewModel.codeSignatureInfo?.designatedRequirementInspection?.status, .available)
     }
 
     @MainActor
@@ -196,7 +273,10 @@ final class ApplicationCodeSignatureViewModelTests: XCTestCase {
         )
     }
 
-    private func signatureInfo(identifier: String) -> CodeSignatureInfo {
+    private func signatureInfo(
+        identifier: String,
+        requirementInspection: DesignatedRequirementInspection? = nil
+    ) -> CodeSignatureInfo {
         let result = ProcessResult(
             executableURL: ApplicationCodeSignatureInspector.codesignURL,
             arguments: ["--display", "--verbose=4", "/Applications/Example.app"],
@@ -205,6 +285,7 @@ final class ApplicationCodeSignatureViewModelTests: XCTestCase {
             standardError: "Identifier=\(identifier)"
         )
 
+        let requirementResults = requirementInspection?.processResult.map { [$0] } ?? []
         return CodeSignatureInfo(
             signingIdentifier: identifier,
             teamIdentifier: "ABCDE12345",
@@ -221,7 +302,36 @@ final class ApplicationCodeSignatureViewModelTests: XCTestCase {
             signatureStatus: .valid,
             signingOrigin: .thirdParty,
             diagnostics: [],
-            processResults: [result]
+            processResults: [result] + requirementResults,
+            designatedRequirementInspection: requirementInspection
+        )
+    }
+
+    private func requirementInspection(
+        requirement: String? = nil,
+        status: DesignatedRequirementStatus = .available
+    ) -> DesignatedRequirementInspection {
+        if status == .executionFailed {
+            return DesignatedRequirementInspection(
+                requirement: nil,
+                status: status,
+                diagnosticDetails: "Designated requirement inspection failed.",
+                processResult: nil
+            )
+        }
+
+        let result = ProcessResult(
+            executableURL: ApplicationCodeSignatureInspector.codesignURL,
+            arguments: ["-dr", "-", "/Applications/Example.app"],
+            terminationStatus: 0,
+            standardOutput: "",
+            standardError: requirement.map { "designated => \($0)" } ?? "designated =>"
+        )
+        return DesignatedRequirementInspection(
+            requirement: requirement,
+            status: status,
+            diagnosticDetails: result.diagnosticText,
+            processResult: result
         )
     }
 

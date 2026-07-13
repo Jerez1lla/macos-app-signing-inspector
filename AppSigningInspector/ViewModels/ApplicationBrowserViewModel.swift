@@ -84,6 +84,10 @@ final class ApplicationBrowserViewModel: ObservableObject {
         copy(codeSignatureInfo?.teamIdentifier)
     }
 
+    func copyDesignatedRequirement() {
+        copy(codeSignatureInfo?.designatedRequirement)
+    }
+
     func copySigningAuthority(_ authority: String) {
         guard codeSignatureInfo?.authorities.contains(authority) == true else {
             return
