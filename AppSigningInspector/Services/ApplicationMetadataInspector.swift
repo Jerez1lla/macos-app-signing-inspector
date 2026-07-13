@@ -80,7 +80,7 @@ struct ApplicationMetadataInspector: ApplicationMetadataInspecting {
         let executableExists = executableURL.map { fileManager.fileExists(atPath: $0.path) } ?? false
         let executablePath: String?
 
-        if let executableName, let executableURL, executableExists {
+        if let executableURL, executableExists {
             executablePath = executableURL.path
         } else {
             executablePath = nil
