@@ -175,6 +175,6 @@ private struct StubIconLoader: ApplicationIconLoading {
             throw error
         }
 
-        NSImage(size: NSSize(width: 32, height: 32))
+        return NSImage(size: NSSize(width: 32, height: 32))
     }
 }
