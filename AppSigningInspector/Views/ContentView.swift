@@ -40,7 +40,11 @@ struct ContentView: View {
                 }
             }
             .keyboardShortcut(.defaultAction)
-            .disabled(viewModel.isLoading || viewModel.isInspectingCodeSignature)
+            .disabled(
+                viewModel.isLoading
+                    || viewModel.isInspectingCodeSignature
+                    || viewModel.isValidatingSecurity
+            )
             .accessibilityLabel(viewModel.hasSelectedApplication ? "Choose a different application" : "Select an application")
 
             Spacer()
@@ -84,7 +88,15 @@ struct ContentView: View {
             copyDesignatedRequirement: viewModel.copyDesignatedRequirement,
             copySigningAuthority: viewModel.copySigningAuthority,
             copyRawSigningDiagnostics: viewModel.copyRawSigningDiagnostics,
-            copySignatureErrorDetails: viewModel.copySignatureErrorDetails
+            copySignatureErrorDetails: viewModel.copySignatureErrorDetails,
+            securityAssessment: viewModel.securityAssessment,
+            isValidatingSecurity: viewModel.isValidatingSecurity,
+            securityErrorMessage: viewModel.securityErrorMessage,
+            copyGatekeeperSource: viewModel.copyGatekeeperSource,
+            copyGatekeeperRejectionReason: viewModel.copyGatekeeperRejectionReason,
+            copyArchitectureList: viewModel.copyArchitectureList,
+            copyRawGatekeeperDiagnostics: viewModel.copyRawGatekeeperDiagnostics,
+            copyRawArchitectureDiagnostics: viewModel.copyRawArchitectureDiagnostics
         )
     }
 }
@@ -104,6 +116,14 @@ private struct SelectedApplicationDetailsView: View {
     let copySigningAuthority: (String) -> Void
     let copyRawSigningDiagnostics: () -> Void
     let copySignatureErrorDetails: () -> Void
+    let securityAssessment: ApplicationSecurityAssessment?
+    let isValidatingSecurity: Bool
+    let securityErrorMessage: String?
+    let copyGatekeeperSource: () -> Void
+    let copyGatekeeperRejectionReason: () -> Void
+    let copyArchitectureList: () -> Void
+    let copyRawGatekeeperDiagnostics: () -> Void
+    let copyRawArchitectureDiagnostics: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -131,6 +151,19 @@ private struct SelectedApplicationDetailsView: View {
                 copyAuthority: copySigningAuthority,
                 copyRawDiagnostics: copyRawSigningDiagnostics,
                 copyErrorDetails: copySignatureErrorDetails
+            )
+
+            Divider()
+
+            SecuritySectionView(
+                assessment: securityAssessment,
+                isLoading: isValidatingSecurity,
+                errorMessage: securityErrorMessage,
+                copyGatekeeperSource: copyGatekeeperSource,
+                copyGatekeeperRejectionReason: copyGatekeeperRejectionReason,
+                copyArchitectureList: copyArchitectureList,
+                copyRawGatekeeperDiagnostics: copyRawGatekeeperDiagnostics,
+                copyRawArchitectureDiagnostics: copyRawArchitectureDiagnostics
             )
         }
     }
@@ -394,7 +427,7 @@ private struct SignatureErrorView: View {
     }
 }
 
-private struct DiagnosticDetailsView: View {
+struct DiagnosticDetailsView: View {
     let title: String
     let details: String
     let copyAction: () -> Void
@@ -480,7 +513,7 @@ private struct MetadataDetailsView: View {
     }
 }
 
-private struct CopyableMetadataRow: View {
+struct CopyableMetadataRow: View {
     let label: String
     let value: String
     let copyAction: (() -> Void)?

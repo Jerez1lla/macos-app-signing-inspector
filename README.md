@@ -16,7 +16,7 @@ Current version:
 
 The initial development focus is the Version 1.0 application-inspection and DDM policy-builder workflow.
 
-The current inspection workflow displays application metadata and code-signature details, including Signing ID, Team ID, signing authorities, the designated code requirement, signature validity, code-signing flags, hardened runtime status, and timestamp where available.
+The current inspection workflow displays application metadata, code-signature details, local Gatekeeper assessment results, conservative notarization status, and main-executable architecture support where available.
 
 ## Platform Support
 
@@ -211,6 +211,10 @@ Shell and platform interactions must be isolated behind services. SwiftUI views 
 Code-signature inspection launches `/usr/bin/codesign` directly through a process-running service. Process execution, output parsing, and view-model presentation are separate so command output can be tested without invoking live system tools.
 
 Designated requirements are retrieved with `codesign -dr -` and shown without reconstructing or simplifying the requirement expression. Failure to retrieve a designated requirement does not discard other signature information.
+
+Security validation launches `/usr/sbin/spctl` for a local Gatekeeper assessment and `/usr/bin/lipo -archs` for the selected application's main executable. These checks reuse the process-running service, use independently testable parsers, and preserve partial results when one check fails.
+
+Gatekeeper acceptance reflects the local Mac's current security policy and is not authoritative remote verification by Apple. The application reports notarization only when the local assessment source explicitly supports that conclusion; otherwise it uses an unconfirmed or unknown status.
 
 ## Development Guidelines
 

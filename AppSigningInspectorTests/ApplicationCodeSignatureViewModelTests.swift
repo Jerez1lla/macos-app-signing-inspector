@@ -247,12 +247,14 @@ final class ApplicationCodeSignatureViewModelTests: XCTestCase {
         pickerResults: [ApplicationPickerResult],
         metadataResults: [ApplicationMetadata],
         signatureInspector: CodeSignatureInspecting,
+        securityAssessor: SecurityAssessing = ViewModelSecurityAssessor(),
         clipboardWriter: ClipboardWriting = ViewModelClipboardWriter()
     ) -> ApplicationBrowserViewModel {
         ApplicationBrowserViewModel(
             picker: ViewModelApplicationPicker(results: pickerResults),
             metadataInspector: ViewModelMetadataInspector(results: metadataResults),
             codeSignatureInspector: signatureInspector,
+            securityAssessor: securityAssessor,
             iconLoader: ViewModelIconLoader(),
             clipboardWriter: clipboardWriter
         )
@@ -399,6 +401,29 @@ private actor QueueViewModelSignatureInspector: CodeSignatureInspecting {
 
     func recordedURLs() -> [URL] {
         inspectedURLs
+    }
+}
+
+private struct ViewModelSecurityAssessor: SecurityAssessing {
+    func assess(
+        applicationAt applicationURL: URL,
+        executablePath: String?
+    ) async -> ApplicationSecurityAssessment {
+        ApplicationSecurityAssessment(
+            gatekeeper: GatekeeperAssessment(
+                status: .accepted,
+                source: "Notarized Developer ID",
+                rejectionReason: nil,
+                notarizationStatus: .notarized,
+                rawDiagnostics: nil
+            ),
+            architecture: ArchitectureAssessment(
+                status: .available,
+                architectures: ["arm64"],
+                classification: .appleSiliconOnly,
+                rawDiagnostics: nil
+            )
+        )
     }
 }
 
