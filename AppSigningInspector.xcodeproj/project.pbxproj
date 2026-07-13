@@ -34,6 +34,15 @@
 		111111111111111111111119 /* DesignatedRequirementOutputParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111027 /* DesignatedRequirementOutputParsing.swift */; };
 		11111111111111111111111A /* DesignatedRequirementOutputParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111028 /* DesignatedRequirementOutputParser.swift */; };
 		11111111111111111111111B /* DesignatedRequirementOutputParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111029 /* DesignatedRequirementOutputParserTests.swift */; };
+		11111111111111111111111C /* ApplicationSecurityAssessment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102A /* ApplicationSecurityAssessment.swift */; };
+		11111111111111111111111D /* SecurityAssessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102B /* SecurityAssessing.swift */; };
+		11111111111111111111111E /* GatekeeperAssessmentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102C /* GatekeeperAssessmentParser.swift */; };
+		11111111111111111111111F /* ArchitectureAssessmentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102D /* ArchitectureAssessmentParser.swift */; };
+		111111111111111111111120 /* ApplicationSecurityAssessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102E /* ApplicationSecurityAssessor.swift */; };
+		111111111111111111111121 /* GatekeeperAssessmentParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102F /* GatekeeperAssessmentParserTests.swift */; };
+		111111111111111111111122 /* ArchitectureAssessmentParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111030 /* ArchitectureAssessmentParserTests.swift */; };
+		111111111111111111111123 /* ApplicationSecurityViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111031 /* ApplicationSecurityViewModelTests.swift */; };
+		111111111111111111111124 /* SecuritySectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111032 /* SecuritySectionView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -76,6 +85,15 @@
 		111111111111111111111027 /* DesignatedRequirementOutputParsing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignatedRequirementOutputParsing.swift; sourceTree = "<group>"; };
 		111111111111111111111028 /* DesignatedRequirementOutputParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignatedRequirementOutputParser.swift; sourceTree = "<group>"; };
 		111111111111111111111029 /* DesignatedRequirementOutputParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignatedRequirementOutputParserTests.swift; sourceTree = "<group>"; };
+		11111111111111111111102A /* ApplicationSecurityAssessment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSecurityAssessment.swift; sourceTree = "<group>"; };
+		11111111111111111111102B /* SecurityAssessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityAssessing.swift; sourceTree = "<group>"; };
+		11111111111111111111102C /* GatekeeperAssessmentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatekeeperAssessmentParser.swift; sourceTree = "<group>"; };
+		11111111111111111111102D /* ArchitectureAssessmentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchitectureAssessmentParser.swift; sourceTree = "<group>"; };
+		11111111111111111111102E /* ApplicationSecurityAssessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSecurityAssessor.swift; sourceTree = "<group>"; };
+		11111111111111111111102F /* GatekeeperAssessmentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatekeeperAssessmentParserTests.swift; sourceTree = "<group>"; };
+		111111111111111111111030 /* ArchitectureAssessmentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchitectureAssessmentParserTests.swift; sourceTree = "<group>"; };
+		111111111111111111111031 /* ApplicationSecurityViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSecurityViewModelTests.swift; sourceTree = "<group>"; };
+		111111111111111111111032 /* SecuritySectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecuritySectionView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -133,6 +151,7 @@
 			isa = PBXGroup;
 			children = (
 				111111111111111111111012 /* ApplicationMetadata.swift */,
+				11111111111111111111102A /* ApplicationSecurityAssessment.swift */,
 				111111111111111111111018 /* CodeSignatureInfo.swift */,
 				111111111111111111111017 /* ProcessResult.swift */,
 				111111111111111111111007 /* SelectedApplication.swift */,
@@ -144,6 +163,7 @@
 			isa = PBXGroup;
 			children = (
 				111111111111111111111002 /* ContentView.swift */,
+				111111111111111111111032 /* SecuritySectionView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -159,12 +179,15 @@
 		111111111111111111111613 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				11111111111111111111102D /* ArchitectureAssessmentParser.swift */,
 				111111111111111111111024 /* ApplicationCodeSignatureInspector.swift */,
 				111111111111111111111015 /* ApplicationMetadataInspector.swift */,
 				111111111111111111111010 /* ApplicationPickerService.swift */,
+				11111111111111111111102E /* ApplicationSecurityAssessor.swift */,
 				111111111111111111111023 /* CodeSignatureOutputParser.swift */,
 				111111111111111111111028 /* DesignatedRequirementOutputParser.swift */,
 				111111111111111111111022 /* FoundationProcessRunner.swift */,
+				11111111111111111111102C /* GatekeeperAssessmentParser.swift */,
 				111111111111111111111016 /* PasteboardClipboardWriter.swift */,
 			);
 			path = Services;
@@ -181,6 +204,7 @@
 				111111111111111111111021 /* CodeSignatureOutputParsing.swift */,
 				111111111111111111111027 /* DesignatedRequirementOutputParsing.swift */,
 				111111111111111111111019 /* ProcessRunning.swift */,
+				11111111111111111111102B /* SecurityAssessing.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -205,8 +229,11 @@
 			children = (
 				111111111111111111111004 /* AppSigningInspectorTests.swift */,
 				111111111111111111111026 /* ApplicationCodeSignatureViewModelTests.swift */,
+				111111111111111111111031 /* ApplicationSecurityViewModelTests.swift */,
+				111111111111111111111030 /* ArchitectureAssessmentParserTests.swift */,
 				111111111111111111111025 /* CodeSignatureOutputParserTests.swift */,
 				111111111111111111111029 /* DesignatedRequirementOutputParserTests.swift */,
+				11111111111111111111102F /* GatekeeperAssessmentParserTests.swift */,
 				111111111111111111111701 /* Fixtures */,
 			);
 			path = AppSigningInspectorTests;
@@ -318,11 +345,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				11111111111111111111111F /* ArchitectureAssessmentParser.swift in Sources */,
 				111111111111111111111116 /* ApplicationCodeSignatureInspector.swift in Sources */,
 				111111111111111111111101 /* AppSigningInspectorApp.swift in Sources */,
 				111111111111111111111109 /* ApplicationBrowserViewModel.swift in Sources */,
 				111111111111111111111107 /* ApplicationIconLoading.swift in Sources */,
 				11111111111111111111110A /* ApplicationMetadata.swift in Sources */,
+				11111111111111111111111C /* ApplicationSecurityAssessment.swift in Sources */,
+				111111111111111111111120 /* ApplicationSecurityAssessor.swift in Sources */,
 				11111111111111111111110B /* ApplicationMetadataInspecting.swift in Sources */,
 				111111111111111111111106 /* ApplicationPicking.swift in Sources */,
 				111111111111111111111108 /* ApplicationPickerService.swift in Sources */,
@@ -336,9 +366,12 @@
 				11111111111111111111111A /* DesignatedRequirementOutputParser.swift in Sources */,
 				111111111111111111111119 /* DesignatedRequirementOutputParsing.swift in Sources */,
 				111111111111111111111114 /* FoundationProcessRunner.swift in Sources */,
+				11111111111111111111111E /* GatekeeperAssessmentParser.swift in Sources */,
 				11111111111111111111110E /* PasteboardClipboardWriter.swift in Sources */,
 				11111111111111111111110F /* ProcessResult.swift in Sources */,
 				111111111111111111111111 /* ProcessRunning.swift in Sources */,
+				111111111111111111111124 /* SecuritySectionView.swift in Sources */,
+				11111111111111111111111D /* SecurityAssessing.swift in Sources */,
 				111111111111111111111105 /* SelectedApplication.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -349,8 +382,11 @@
 			files = (
 				111111111111111111111104 /* AppSigningInspectorTests.swift in Sources */,
 				111111111111111111111118 /* ApplicationCodeSignatureViewModelTests.swift in Sources */,
+				111111111111111111111123 /* ApplicationSecurityViewModelTests.swift in Sources */,
+				111111111111111111111122 /* ArchitectureAssessmentParserTests.swift in Sources */,
 				111111111111111111111117 /* CodeSignatureOutputParserTests.swift in Sources */,
 				11111111111111111111111B /* DesignatedRequirementOutputParserTests.swift in Sources */,
+				111111111111111111111121 /* GatekeeperAssessmentParserTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
