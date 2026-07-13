@@ -16,6 +16,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
             picker: StubApplicationPicker(result: .cancelled),
             metadataInspector: StubMetadataInspector(),
             codeSignatureInspector: StubCodeSignatureInspector(),
+            securityAssessor: StubSecurityAssessor(),
             iconLoader: StubIconLoader()
         )
 
@@ -31,6 +32,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
             picker: StubApplicationPicker(result: .selected(appURL)),
             metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "Example")),
             codeSignatureInspector: StubCodeSignatureInspector(),
+            securityAssessor: StubSecurityAssessor(),
             iconLoader: StubIconLoader()
         )
 
@@ -53,6 +55,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
             picker: picker,
             metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "Existing")),
             codeSignatureInspector: StubCodeSignatureInspector(),
+            securityAssessor: StubSecurityAssessor(),
             iconLoader: StubIconLoader()
         )
 
@@ -71,6 +74,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
             picker: StubApplicationPicker(result: .selected(invalidURL)),
             metadataInspector: StubMetadataInspector(),
             codeSignatureInspector: StubCodeSignatureInspector(),
+            securityAssessor: StubSecurityAssessor(),
             iconLoader: StubIconLoader()
         )
 
@@ -90,6 +94,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
             picker: StubApplicationPicker(result: .selected(missingURL)),
             metadataInspector: StubMetadataInspector(),
             codeSignatureInspector: StubCodeSignatureInspector(),
+            securityAssessor: StubSecurityAssessor(),
             iconLoader: StubIconLoader()
         )
 
@@ -109,6 +114,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
             picker: StubApplicationPicker(result: .selected(appURL)),
             metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "NoIcon")),
             codeSignatureInspector: StubCodeSignatureInspector(),
+            securityAssessor: StubSecurityAssessor(),
             iconLoader: StubIconLoader(error: ApplicationBrowserError.iconUnavailable(appURL))
         )
 
@@ -136,6 +142,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
                 metadata(for: appURL, displayName: "Valid")
             ]),
             codeSignatureInspector: StubCodeSignatureInspector(),
+            securityAssessor: StubSecurityAssessor(),
             iconLoader: StubIconLoader()
         )
 
@@ -154,6 +161,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
             picker: StubApplicationPicker(result: .selected(appURL)),
             metadataInspector: StubMetadataInspector(error: ApplicationMetadataError.infoPlistUnreadable(appURL)),
             codeSignatureInspector: StubCodeSignatureInspector(),
+            securityAssessor: StubSecurityAssessor(),
             iconLoader: StubIconLoader()
         )
 
@@ -181,6 +189,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
                 metadata(for: secondURL, displayName: "Second")
             ]),
             codeSignatureInspector: StubCodeSignatureInspector(),
+            securityAssessor: StubSecurityAssessor(),
             iconLoader: StubIconLoader()
         )
 
@@ -200,6 +209,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
             picker: StubApplicationPicker(result: .selected(appURL)),
             metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "Copyable")),
             codeSignatureInspector: StubCodeSignatureInspector(),
+            securityAssessor: StubSecurityAssessor(),
             iconLoader: StubIconLoader(),
             clipboardWriter: clipboard
         )
@@ -444,6 +454,29 @@ private struct StubCodeSignatureInspector: CodeSignatureInspecting {
             signingOrigin: .unknown,
             diagnostics: [],
             processResults: []
+        )
+    }
+}
+
+private struct StubSecurityAssessor: SecurityAssessing {
+    func assess(
+        applicationAt applicationURL: URL,
+        executablePath: String?
+    ) async -> ApplicationSecurityAssessment {
+        ApplicationSecurityAssessment(
+            gatekeeper: GatekeeperAssessment(
+                status: .accepted,
+                source: "Notarized Developer ID",
+                rejectionReason: nil,
+                notarizationStatus: .notarized,
+                rawDiagnostics: nil
+            ),
+            architecture: ArchitectureAssessment(
+                status: .available,
+                architectures: ["arm64"],
+                classification: .appleSiliconOnly,
+                rawDiagnostics: nil
+            )
         )
     }
 }

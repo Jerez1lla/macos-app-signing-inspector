@@ -10,10 +10,14 @@ final class ApplicationBrowserViewModel: ObservableObject {
     @Published private(set) var signatureErrorMessage: String?
     @Published private(set) var signatureErrorDetails: String?
     @Published private(set) var isInspectingCodeSignature = false
+    @Published private(set) var securityAssessment: ApplicationSecurityAssessment?
+    @Published private(set) var securityErrorMessage: String?
+    @Published private(set) var isValidatingSecurity = false
 
     private let picker: ApplicationPicking
     private let metadataInspector: ApplicationMetadataInspecting
     private let codeSignatureInspector: CodeSignatureInspecting
+    private let securityAssessor: SecurityAssessing
     private let iconLoader: ApplicationIconLoading
     private let clipboardWriter: ClipboardWriting
     private let fileManager: FileManager
@@ -22,6 +26,7 @@ final class ApplicationBrowserViewModel: ObservableObject {
         picker: ApplicationPicking = ApplicationPickerService(),
         metadataInspector: ApplicationMetadataInspecting = ApplicationMetadataInspector(),
         codeSignatureInspector: CodeSignatureInspecting = ApplicationCodeSignatureInspector(),
+        securityAssessor: SecurityAssessing = ApplicationSecurityAssessor(),
         iconLoader: ApplicationIconLoading = WorkspaceApplicationIconLoader(),
         clipboardWriter: ClipboardWriting = PasteboardClipboardWriter(),
         fileManager: FileManager = .default
@@ -29,6 +34,7 @@ final class ApplicationBrowserViewModel: ObservableObject {
         self.picker = picker
         self.metadataInspector = metadataInspector
         self.codeSignatureInspector = codeSignatureInspector
+        self.securityAssessor = securityAssessor
         self.iconLoader = iconLoader
         self.clipboardWriter = clipboardWriter
         self.fileManager = fileManager
@@ -46,11 +52,15 @@ final class ApplicationBrowserViewModel: ObservableObject {
                 return
             case .selected(let url):
                 clearCodeSignatureState()
+                clearSecurityState()
                 isLoading = true
                 selectedApplication = try application(from: url)
                 errorMessage = nil
                 isLoading = false
                 await inspectCodeSignature(for: url)
+                if let metadata = selectedApplication?.metadata {
+                    await validateSecurity(for: metadata)
+                }
             }
         } catch let error as ApplicationBrowserError {
             errorMessage = error.userMessage
@@ -104,6 +114,26 @@ final class ApplicationBrowserViewModel: ObservableObject {
         copy(signatureErrorDetails)
     }
 
+    func copyGatekeeperSource() {
+        copy(securityAssessment?.gatekeeper.source)
+    }
+
+    func copyGatekeeperRejectionReason() {
+        copy(securityAssessment?.gatekeeper.rejectionReason)
+    }
+
+    func copyArchitectureList() {
+        copy(securityAssessment?.architecture.architectureList)
+    }
+
+    func copyRawGatekeeperDiagnostics() {
+        copy(securityAssessment?.gatekeeper.rawDiagnostics)
+    }
+
+    func copyRawArchitectureDiagnostics() {
+        copy(securityAssessment?.architecture.rawDiagnostics)
+    }
+
     func application(from url: URL) throws -> SelectedApplication {
         guard fileManager.fileExists(atPath: url.path) else {
             throw ApplicationBrowserError.applicationDoesNotExist(url)
@@ -154,6 +184,28 @@ final class ApplicationBrowserViewModel: ObservableObject {
         signatureErrorMessage = nil
         signatureErrorDetails = nil
         isInspectingCodeSignature = false
+    }
+
+    private func validateSecurity(for metadata: ApplicationMetadata) async {
+        isValidatingSecurity = true
+        defer {
+            isValidatingSecurity = false
+        }
+
+        let assessment = await securityAssessor.assess(
+            applicationAt: metadata.applicationURL,
+            executablePath: metadata.executablePath
+        )
+        securityAssessment = assessment
+        securityErrorMessage = assessment.validationStatus == .unavailable
+            ? "Security validation could not be completed. Review the diagnostic details."
+            : nil
+    }
+
+    private func clearSecurityState() {
+        securityAssessment = nil
+        securityErrorMessage = nil
+        isValidatingSecurity = false
     }
 
     private func copy(_ value: String?) {
