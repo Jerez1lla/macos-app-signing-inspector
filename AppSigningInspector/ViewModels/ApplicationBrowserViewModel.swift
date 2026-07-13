@@ -6,9 +6,14 @@ final class ApplicationBrowserViewModel: ObservableObject {
     @Published private(set) var selectedApplication: SelectedApplication?
     @Published private(set) var errorMessage: String?
     @Published private(set) var isLoading = false
+    @Published private(set) var codeSignatureInfo: CodeSignatureInfo?
+    @Published private(set) var signatureErrorMessage: String?
+    @Published private(set) var signatureErrorDetails: String?
+    @Published private(set) var isInspectingCodeSignature = false
 
     private let picker: ApplicationPicking
     private let metadataInspector: ApplicationMetadataInspecting
+    private let codeSignatureInspector: CodeSignatureInspecting
     private let iconLoader: ApplicationIconLoading
     private let clipboardWriter: ClipboardWriting
     private let fileManager: FileManager
@@ -16,12 +21,14 @@ final class ApplicationBrowserViewModel: ObservableObject {
     init(
         picker: ApplicationPicking = ApplicationPickerService(),
         metadataInspector: ApplicationMetadataInspecting = ApplicationMetadataInspector(),
+        codeSignatureInspector: CodeSignatureInspecting = ApplicationCodeSignatureInspector(),
         iconLoader: ApplicationIconLoading = WorkspaceApplicationIconLoader(),
         clipboardWriter: ClipboardWriting = PasteboardClipboardWriter(),
         fileManager: FileManager = .default
     ) {
         self.picker = picker
         self.metadataInspector = metadataInspector
+        self.codeSignatureInspector = codeSignatureInspector
         self.iconLoader = iconLoader
         self.clipboardWriter = clipboardWriter
         self.fileManager = fileManager
@@ -38,12 +45,12 @@ final class ApplicationBrowserViewModel: ObservableObject {
             case .cancelled:
                 return
             case .selected(let url):
+                clearCodeSignatureState()
                 isLoading = true
-                defer {
-                    isLoading = false
-                }
                 selectedApplication = try application(from: url)
                 errorMessage = nil
+                isLoading = false
+                await inspectCodeSignature(for: url)
             }
         } catch let error as ApplicationBrowserError {
             errorMessage = error.userMessage
@@ -69,6 +76,30 @@ final class ApplicationBrowserViewModel: ObservableObject {
         copy(selectedApplication?.metadata.executablePath)
     }
 
+    func copySigningIdentifier() {
+        copy(codeSignatureInfo?.signingIdentifier)
+    }
+
+    func copyTeamIdentifier() {
+        copy(codeSignatureInfo?.teamIdentifier)
+    }
+
+    func copySigningAuthority(_ authority: String) {
+        guard codeSignatureInfo?.authorities.contains(authority) == true else {
+            return
+        }
+
+        copy(authority)
+    }
+
+    func copyRawSigningDiagnostics() {
+        copy(codeSignatureInfo?.rawDiagnostics)
+    }
+
+    func copySignatureErrorDetails() {
+        copy(signatureErrorDetails)
+    }
+
     func application(from url: URL) throws -> SelectedApplication {
         guard fileManager.fileExists(atPath: url.path) else {
             throw ApplicationBrowserError.applicationDoesNotExist(url)
@@ -91,6 +122,34 @@ final class ApplicationBrowserViewModel: ObservableObject {
         let icon = try iconLoader.icon(for: url)
 
         return SelectedApplication(metadata: metadata, icon: icon)
+    }
+
+    private func inspectCodeSignature(for applicationURL: URL) async {
+        isInspectingCodeSignature = true
+        defer {
+            isInspectingCodeSignature = false
+        }
+
+        do {
+            codeSignatureInfo = try await codeSignatureInspector.inspect(applicationAt: applicationURL)
+            signatureErrorMessage = nil
+            signatureErrorDetails = nil
+        } catch let error as CodeSignatureInspectionError {
+            codeSignatureInfo = nil
+            signatureErrorMessage = error.userMessage
+            signatureErrorDetails = error.diagnosticDetails
+        } catch {
+            codeSignatureInfo = nil
+            signatureErrorMessage = "Code-signature inspection failed. Try again or choose another application."
+            signatureErrorDetails = error.localizedDescription
+        }
+    }
+
+    private func clearCodeSignatureState() {
+        codeSignatureInfo = nil
+        signatureErrorMessage = nil
+        signatureErrorDetails = nil
+        isInspectingCodeSignature = false
     }
 
     private func copy(_ value: String?) {
