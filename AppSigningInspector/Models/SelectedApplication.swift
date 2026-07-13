@@ -2,11 +2,18 @@ import AppKit
 import Foundation
 
 struct SelectedApplication {
-    let url: URL
-    let name: String
+    let metadata: ApplicationMetadata
     let icon: NSImage
 
+    var url: URL {
+        metadata.applicationURL
+    }
+
+    var name: String {
+        metadata.displayName
+    }
+
     var path: String {
-        url.path
+        metadata.bundlePath
     }
 }

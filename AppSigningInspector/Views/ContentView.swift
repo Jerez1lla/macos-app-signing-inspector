@@ -19,6 +19,8 @@ struct ContentView: View {
 
             if let selectedApplication = viewModel.selectedApplication {
                 selectedApplicationView(selectedApplication)
+            } else if viewModel.isLoading {
+                loadingStateView
             } else {
                 emptyStateView
             }
@@ -53,7 +55,52 @@ struct ContentView: View {
         }
     }
 
+    private var loadingStateView: some View {
+        HStack(spacing: 12) {
+            ProgressView()
+                .controlSize(.small)
+
+            Text("Reading application metadata...")
+                .foregroundStyle(.secondary)
+        }
+    }
+
     private func selectedApplicationView(_ application: SelectedApplication) -> some View {
+        SelectedApplicationDetailsView(
+            application: application,
+            copyBundleIdentifier: viewModel.copyBundleIdentifier,
+            copyBundlePath: viewModel.copyBundlePath,
+            copyExecutablePath: viewModel.copyExecutablePath
+        )
+    }
+}
+
+private struct SelectedApplicationDetailsView: View {
+    let application: SelectedApplication
+    let copyBundleIdentifier: () -> Void
+    let copyBundlePath: () -> Void
+    let copyExecutablePath: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            ApplicationHeaderView(application: application)
+
+            MetadataDetailsView(
+                metadata: application.metadata,
+                copyBundleIdentifier: copyBundleIdentifier,
+                copyBundlePath: copyBundlePath,
+                copyExecutablePath: copyExecutablePath
+            )
+
+            MetadataDiagnosticsView(diagnostics: application.metadata.diagnostics)
+        }
+    }
+}
+
+private struct ApplicationHeaderView: View {
+    let application: SelectedApplication
+
+    var body: some View {
         HStack(alignment: .top, spacing: 16) {
             Image(nsImage: application.icon)
                 .resizable()
@@ -78,6 +125,94 @@ struct ContentView: View {
                     .truncationMode(.middle)
                     .textSelection(.enabled)
                     .accessibilityLabel("Application path: \(application.path)")
+            }
+        }
+    }
+}
+
+private struct MetadataDetailsView: View {
+    let metadata: ApplicationMetadata
+    let copyBundleIdentifier: () -> Void
+    let copyBundlePath: () -> Void
+    let copyExecutablePath: () -> Void
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
+            CopyableMetadataRow(
+                label: "Bundle Identifier",
+                value: metadata.bundleIdentifierDisplayValue,
+                copyAction: metadata.bundleIdentifier == nil ? nil : copyBundleIdentifier
+            )
+            CopyableMetadataRow(label: "Version", value: metadata.versionDisplayValue)
+            CopyableMetadataRow(label: "Build", value: metadata.buildDisplayValue)
+            CopyableMetadataRow(label: "Executable", value: metadata.executableNameDisplayValue)
+            CopyableMetadataRow(
+                label: "Executable Path",
+                value: metadata.executablePathDisplayValue,
+                copyAction: metadata.executablePath == nil ? nil : copyExecutablePath
+            )
+            CopyableMetadataRow(
+                label: "Bundle Path",
+                value: metadata.bundlePath,
+                copyAction: copyBundlePath
+            )
+        }
+    }
+}
+
+private struct CopyableMetadataRow: View {
+    let label: String
+    let value: String
+    let copyAction: (() -> Void)?
+
+    init(label: String, value: String, copyAction: (() -> Void)? = nil) {
+        self.label = label
+        self.value = value
+        self.copyAction = copyAction
+    }
+
+    var body: some View {
+        GridRow {
+            Text(label)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+
+            Text(value)
+                .font(.callout)
+                .textSelection(.enabled)
+                .lineLimit(2)
+                .truncationMode(.middle)
+                .accessibilityLabel("\(label): \(value)")
+
+            copyButton
+        }
+    }
+
+    @ViewBuilder
+    private var copyButton: some View {
+        if let copyAction {
+            Button("Copy", action: copyAction)
+                .buttonStyle(.borderless)
+                .accessibilityLabel("Copy \(label)")
+        }
+    }
+}
+
+private struct MetadataDiagnosticsView: View {
+    let diagnostics: [ApplicationMetadataDiagnostic]
+
+    private var messages: [String] {
+        diagnostics.map(\.message)
+    }
+
+    var body: some View {
+        if !messages.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(messages, id: \.self) { message in
+                    Label(message, systemImage: "info.circle")
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
             }
         }
     }
