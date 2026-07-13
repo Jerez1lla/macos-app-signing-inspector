@@ -182,9 +182,7 @@ The project will be successful when:
 
 **Repository Name:** `macos-app-signing-inspector`
 
-**Initial Version:** `0.1.0`
-
-**Planned Stable Release:** `1.0.0`
+**Current Release Target:** `1.0.0`
 
 **Platform:** macOS
 
