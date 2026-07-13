@@ -61,6 +61,7 @@ private struct SecurityAssessmentDetailsView: View {
                 Label(errorMessage, systemImage: "exclamationmark.triangle")
                     .font(.callout)
                     .foregroundStyle(.orange)
+                    .accessibilityLabel("Security assessment warning: \(errorMessage)")
             }
 
             if let diagnostics = assessment.gatekeeper.rawDiagnostics, !diagnostics.isEmpty {
@@ -114,6 +115,7 @@ private struct SecurityValidationSummaryView: View {
     var body: some View {
         Label(status.displayValue, systemImage: symbolName)
             .foregroundStyle(color)
+            .accessibilityLabel("Security validation status: \(status.displayValue)")
     }
 }
 

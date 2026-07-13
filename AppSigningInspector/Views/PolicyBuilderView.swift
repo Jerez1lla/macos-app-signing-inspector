@@ -86,6 +86,7 @@ struct PolicyBuilderView: View {
                     Label("Add Applications", systemImage: "plus")
                 }
                 .disabled(viewModel.isAddingApplications || viewModel.isExporting)
+                .accessibilityIdentifier("policyBuilder.addApplications")
             }
         }
     }
@@ -228,6 +229,7 @@ private struct PolicyEntryRow: View {
             if let message = entry.validationState.message {
                 Label(message, systemImage: "exclamationmark.triangle")
                     .font(.caption)
+                    .accessibilityLabel("Invalid policy rule: \(message)")
             }
 
             if let details = entry.validationState.diagnosticDetails, !details.isEmpty {
@@ -278,7 +280,7 @@ private struct PolicyValueRow: View {
             Text(value)
                 .font(.caption)
                 .textSelection(.enabled)
-                .lineLimit(1)
+                .lineLimit(2)
                 .truncationMode(.middle)
         }
     }
@@ -287,13 +289,21 @@ private struct PolicyValueRow: View {
 private struct PolicySafetyWarningsView: View {
     let warnings: [String]
 
+    @ViewBuilder
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            ForEach(warnings, id: \.self) { warning in
-                Label(warning, systemImage: "exclamationmark.triangle.fill")
-                    .font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
+        if !warnings.isEmpty {
+            VStack(alignment: .leading, spacing: 7) {
+                ForEach(warnings, id: \.self) { warning in
+                    Label(warning, systemImage: "exclamationmark.triangle.fill")
+                        .font(.callout)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+            .padding(10)
+            .background(Color(nsColor: .controlBackgroundColor))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Policy safety warnings: \(warnings.joined(separator: " "))")
         }
     }
 }
@@ -323,12 +333,14 @@ private struct PolicyBuilderMessagesView: View {
                 Label(workflowErrorMessage, systemImage: "xmark.circle")
                     .font(.callout)
                     .foregroundStyle(.red)
+                    .accessibilityLabel("Policy builder error: \(workflowErrorMessage)")
             }
 
             if let exportStatusMessage {
                 Label(exportStatusMessage, systemImage: "checkmark.circle")
                     .font(.callout)
                     .foregroundStyle(.green)
+                    .accessibilityLabel("Policy builder status: \(exportStatusMessage)")
             }
         }
     }
@@ -352,11 +364,13 @@ private struct DeclarationPreviewView: View {
                     Label("Copy JSON", systemImage: "doc.on.doc")
                 }
                 .disabled(!canExport)
+                .accessibilityIdentifier("policyBuilder.copyJSON")
 
                 Button(action: exportAction) {
                     Label("Export JSON", systemImage: "square.and.arrow.up")
                 }
                 .disabled(!canExport)
+                .accessibilityIdentifier("policyBuilder.exportJSON")
             }
 
             if let json {
