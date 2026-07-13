@@ -1,8 +1,10 @@
 # App Signing Inspector
 
-App Signing Inspector is a native macOS utility for inspecting macOS `.app` signing details and building Declarative Device Management application execution declarations.
+App Signing Inspector is a native macOS utility with two primary Version 1.0 workflows: inspecting one macOS `.app` bundle and building Declarative Device Management application execution declarations.
 
-Its Version 1.0 focus is helping administrators collect Signing ID and Team ID values from multiple selected applications, assign each application an allowed or denied action, and use a graphical policy builder to generate a complete `com.apple.configuration.app.settings` declaration.
+The **Inspector** remains a focused, standalone workflow for selecting one application and reviewing its metadata, signing, designated-requirement, Gatekeeper, notarization, and architecture information. The **Policy Builder** is a separate workspace for selecting multiple applications, assigning allow or deny actions, and generating a complete `com.apple.configuration.app.settings` declaration.
+
+Version 1.0 uses a compact native macOS sidebar implemented with `NavigationSplitView`. **Inspector** is the default destination, and **Policy Builder** is a separate destination; switching workspaces should preserve valid state without combining their view models.
 
 Version 1.0 supports JSON preview, clipboard copy, and local `.json` export for manual use in Jamf or another MDM platform. Direct Jamf upload is planned only as a future capability and depends on Jamf providing a stable and fully documented Blueprint API.
 
@@ -17,6 +19,16 @@ Current version:
 The initial development focus is the Version 1.0 application-inspection and DDM policy-builder workflow.
 
 The current inspection workflow displays application metadata, code-signature details, local Gatekeeper assessment results, conservative notarization status, and main-executable architecture support where available.
+
+## Version 1.0 Workflows
+
+### Inspector
+
+The Inspector is the default workspace and remains independent of policy creation. Administrators can select one `.app` bundle, review the available inspection results, and copy individual values without starting or modifying a policy.
+
+### Policy Builder
+
+The Policy Builder is a separate workspace for assembling a multi-application allow and deny policy. It reuses the same inspection services while maintaining its own selected applications, validation state, generated declaration, and presentation state.
 
 ## Platform Support
 
@@ -39,7 +51,9 @@ Version 1.0 is a focused minimum viable release for inspecting macOS `.app` bund
 
 Version 1.0 includes:
 
-* Opening a dedicated graphical DDM policy builder
+* Preserving a focused single-application Inspector as the default workspace
+* Navigating between Inspector and Policy Builder through a compact native sidebar
+* Opening a dedicated graphical DDM Policy Builder workspace
 * Adding multiple macOS `.app` bundles through a native file picker
 * Automatically inspecting each selected application
 * Retrieving and storing each selected application's name, icon, Signing ID, and Team ID
@@ -113,6 +127,8 @@ AppSigningInspector/
 |-- PROJECT_RULES.md
 |-- VISION.md
 |-- LICENSE
+|-- docs/
+|   `-- STORY_6_IMPLEMENTATION_PLAN.md
 |-- AppSigningInspector.xcodeproj
 |-- AppSigningInspector/
 |   |-- AppSigningInspectorApp.swift
@@ -222,6 +238,7 @@ Contributors must review:
 
 * `VISION.md` for the long-term product direction, intended audience, guiding principles, and future capabilities
 * `PROJECT_RULES.md` for enforceable architecture, testing, security, privacy, and implementation requirements
+* `docs/STORY_6_IMPLEMENTATION_PLAN.md` for the approved Story 6 workspace and policy-builder implementation plan
 
 ## DDM Documentation
 
