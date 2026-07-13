@@ -17,34 +17,29 @@ enum PolicyAction: String, CaseIterable, Codable, Hashable, Sendable {
 
 struct PolicyEntry: Identifiable {
     let id: UUID
-    let applicationURL: URL
+    let applicationURL: URL?
     let displayName: String
-    let icon: NSImage
-    let signingIdentifier: String?
-    let teamIdentifier: String?
+    let icon: NSImage?
+    let signingAuthority: String?
+    let applicationSigningIdentifier: String?
+    let applicationTeamIdentifier: String?
+    var rule: PolicyRule
     var action: PolicyAction
-    let validationState: PolicyEntryValidationState
+    var validationState: PolicyEntryValidationState
 
     var isValid: Bool {
         validationState == .valid
     }
 
-    var signingKey: PolicySigningKey? {
-        guard let signingIdentifier, let teamIdentifier else {
-            return nil
-        }
-        return PolicySigningKey(signingIdentifier: signingIdentifier, teamIdentifier: teamIdentifier)
-    }
+    var signingIdentifier: String? { rule.signingIdentifier }
+    var teamIdentifier: String? { rule.teamIdentifier }
+    var pathPrefix: String? { rule.pathPrefix }
 
     var binaryCandidate: PolicyBinaryCandidate? {
-        guard isValid, let signingIdentifier, let teamIdentifier else {
+        guard isValid else {
             return nil
         }
-        return PolicyBinaryCandidate(
-            signingIdentifier: signingIdentifier,
-            teamIdentifier: teamIdentifier,
-            action: action
-        )
+        return PolicyBinaryCandidate(rule: rule, action: action)
     }
 }
 
@@ -53,6 +48,9 @@ enum PolicyEntryValidationState: Equatable {
     case missingSigningIdentifier
     case missingTeamIdentifier
     case missingSigningAndTeamIdentifiers
+    case invalidPathPrefix
+    case invalidSpecialTeamIdentifier
+    case unsupportedRuleAction
     case signatureInspectionFailed(String)
 
     var message: String? {
@@ -60,13 +58,19 @@ enum PolicyEntryValidationState: Equatable {
         case .valid:
             return nil
         case .missingSigningIdentifier:
-            return "Signing ID is unavailable. This entry cannot be exported."
+            return "Signing ID is unavailable. This rule cannot be exported."
         case .missingTeamIdentifier:
-            return "Team ID is unavailable. This entry cannot be exported."
+            return "Team ID is required. This rule cannot be exported."
         case .missingSigningAndTeamIdentifiers:
-            return "Signing ID and Team ID are unavailable. This entry cannot be exported."
+            return "Signing ID and Team ID are unavailable. This rule cannot be exported."
+        case .invalidPathPrefix:
+            return "Path Prefix must be an absolute path beginning with /."
+        case .invalidSpecialTeamIdentifier:
+            return "Only the documented *APPLE* special Team ID token is supported."
+        case .unsupportedRuleAction:
+            return "This rule type does not support the selected action."
         case .signatureInspectionFailed:
-            return "Code-signature inspection failed. This entry cannot be exported."
+            return "Code-signature inspection failed. This rule cannot be exported."
         }
     }
 
@@ -78,28 +82,22 @@ enum PolicyEntryValidationState: Equatable {
     }
 }
 
-struct PolicySigningKey: Hashable, Sendable {
-    let signingIdentifier: String
-    let teamIdentifier: String
-}
-
 struct PolicyBinaryCandidate: Equatable, Sendable {
-    let signingIdentifier: String
-    let teamIdentifier: String
+    let rule: PolicyRule
     let action: PolicyAction
 }
 
 enum PolicyBuilderNotice: Equatable {
     case duplicateApplication(String)
-    case duplicateSigningEntry(displayName: String, signingIdentifier: String, teamIdentifier: String)
+    case duplicateRule(String)
     case applicationInspectionFailed(displayName: String, details: String)
 
     var message: String {
         switch self {
         case .duplicateApplication(let displayName):
             return "\(displayName) is already in this policy."
-        case .duplicateSigningEntry(let displayName, let signingIdentifier, let teamIdentifier):
-            return "\(displayName) duplicates signing entry \(signingIdentifier) / \(teamIdentifier)."
+        case .duplicateRule(let description):
+            return "A matching \(description) rule is already in this policy."
         case .applicationInspectionFailed(let displayName, _):
             return "\(displayName) could not be inspected and was not added to the policy."
         }

@@ -28,7 +28,7 @@ The Inspector is the default workspace and remains independent of policy creatio
 
 ### Policy Builder
 
-The Policy Builder is a separate workspace for assembling a multi-application allow and deny policy. It reuses the same inspection services while maintaining its own selected applications, validation state, generated declaration, and presentation state.
+The Policy Builder is a separate workspace for assembling a multi-application allow and deny policy. It supports specific-application rules, developer Team ID allow rules, Apple's documented `*APPLE*` special Team ID rule, optional absolute `PathPrefix` restrictions, and the `AlwaysAllowManagedApps` option. It reuses the same inspection services while maintaining its own selected applications, validation state, generated declaration, and presentation state.
 
 ## Platform Support
 
@@ -58,6 +58,10 @@ Version 1.0 includes:
 * Automatically inspecting each selected application
 * Retrieving and storing each selected application's name, icon, Signing ID, and Team ID
 * Choosing whether each selected application is allowed or denied
+* Creating developer-wide allow rules using an inspected or manually entered Apple signing Team ID
+* Allowing Apple binaries with the documented `*APPLE*` special Team ID token
+* Optionally restricting specific-application rules with an absolute `PathPrefix`
+* Optionally generating `AlwaysAllowManagedApps: true`
 * Displaying selected applications in a clear editable list
 * Changing an application between allowed and denied
 * Removing an application from the policy
@@ -245,6 +249,12 @@ Contributors must review:
 Generated declaration data must track Apple's official Declarative Device Management schema and documentation.
 
 Because the project is initially being developed against beta operating-system functionality, payload structure and behavior may change before the final macOS 27 release.
+
+The advanced binary-rule schema is based on macOS 27 AppleSeed for IT beta test documentation. The builder does not invent company wildcard tokens: only the documented `*APPLE*` special token is supported, and third-party developer rules use an actual Team ID.
+
+Team-ID-only `DeniedBinaries` objects are not generated because that exact object shape has not yet been verified in sufficiently explicit schema documentation. Developer-wide rules are therefore Allow-only until Apple documents and validates the denied form.
+
+Policy drafts are not persisted in Version 1.0, so this model extension requires no stored-data migration. Existing specific application rules retain their previous JSON shape unless an administrator edits their scope or enables `PathPrefix`.
 
 Any payload-schema assumptions should be documented in the source code and updated when Apple publishes revised guidance.
 

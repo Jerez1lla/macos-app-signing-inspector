@@ -184,11 +184,16 @@ Prefer Apple frameworks and small internal implementations when reasonable.
 * Format exported JSON for readability.
 * Keep generated JSON deterministic so equivalent policy state produces equivalent JSON except for intentionally generated UUID values.
 * Validate required fields before generating payload content.
+* Validate required fields according to typed rule scope; do not require `SigningID` for documented Team-ID-only allow rules.
+* Omit optional payload keys when they are not selected or required; do not emit `null` or explicit `false` values merely for convenience.
+* Preserve `PathPrefix` capitalization and spaces exactly, require an absolute path, and do not use a shell to process it.
 * Validate required values before allowing local JSON export.
 * Export JSON only to user-selected local file destinations.
 * Clearly label payload functionality that is specific to macOS 27.
 * Do not imply that generating valid JSON guarantees successful enforcement by an MDM server or device.
 * Do not invent undocumented payload fields or behaviors.
+* Support only documented special tokens. Do not generate company-name wildcard tokens; the current AppleSeed-based exception is the exact `*APPLE*` Team ID token.
+* Treat macOS 27 beta schema behavior conservatively and document unverified rule shapes rather than inferring symmetry between allowed and denied rules.
 
 ## Future Integration Boundaries
 

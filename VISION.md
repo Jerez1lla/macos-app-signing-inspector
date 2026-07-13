@@ -40,7 +40,7 @@ The application should remain understandable for administrators who are comforta
 
 Version 1.0 is intentionally organized around two separate primary workspaces: **Inspector** and **Policy Builder**.
 
-The Inspector should remain a focused, independent workflow for examining one macOS `.app` bundle. The Policy Builder should let administrators add multiple applications, choose whether each application is allowed or denied, review the resulting policy, and generate complete JSON for manual use in an MDM platform such as Jamf Pro.
+The Inspector should remain a focused, independent workflow for examining one macOS `.app` bundle. The Policy Builder should let administrators combine specific-application, developer Team ID, Apple-binary, path-restricted, and managed-application options supported by the documented macOS 27 schema, review the resulting policy, and generate complete JSON for manual use in an MDM platform such as Jamf Pro.
 
 A compact native macOS sidebar should make both workspaces directly available, with Inspector selected by default. Workspace state should remain separate so inspecting an application never requires beginning a policy, and policy editing does not replace or crowd the Inspector.
 

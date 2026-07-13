@@ -149,7 +149,7 @@ final class PolicyBuilderViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.entries.count, 1)
         XCTAssertTrue(viewModel.notices.contains { notice in
-            if case .duplicateSigningEntry = notice { return true }
+            if case .duplicateRule = notice { return true }
             return false
         })
     }
@@ -262,6 +262,169 @@ final class PolicyBuilderViewModelTests: XCTestCase {
         XCTAssertEqual(exporter.exportedJSON, expectedJSON)
         XCTAssertEqual(exporter.suggestedFilename, "app-settings-declaration.json")
         XCTAssertEqual(viewModel.exportStatusMessage, "Exported declaration.json.")
+    }
+
+    @MainActor
+    func testManagedAppsToggleGeneratesValidPolicyWithoutBinaryRules() throws {
+        let viewModel = makeViewModel(pickerResults: [], metadataResults: [])
+
+        viewModel.setAlwaysAllowManagedApps(true)
+
+        let object = try jsonObject(from: XCTUnwrap(viewModel.jsonPreview))
+        let allowed = try allowedObject(from: object)
+        XCTAssertEqual(allowed["AlwaysAllowManagedApps"] as? Bool, true)
+        XCTAssertNil(allowed["AllowedBinaries"])
+        XCTAssertNil(allowed["DeniedBinaries"])
+        XCTAssertTrue(viewModel.canExport)
+
+        viewModel.setAlwaysAllowManagedApps(false)
+        XCTAssertNil(viewModel.jsonPreview)
+        XCTAssertFalse(viewModel.canExport)
+    }
+
+    @MainActor
+    func testAppleRuleUsesDocumentedTokenAndRejectsDuplicate() throws {
+        let viewModel = makeViewModel(pickerResults: [], metadataResults: [])
+
+        viewModel.setAllowAllAppleBinaries(true)
+        viewModel.setAllowAllAppleBinaries(true)
+
+        XCTAssertEqual(viewModel.entries.count, 1)
+        XCTAssertEqual(viewModel.entries.first?.rule, .appleBinaries)
+        XCTAssertTrue(viewModel.notices.contains { notice in
+            if case .duplicateRule = notice { return true }
+            return false
+        })
+        let object = try jsonObject(from: XCTUnwrap(viewModel.jsonPreview))
+        let allowed = try allowedObject(from: object)
+        let binary = try XCTUnwrap((allowed["AllowedBinaries"] as? [[String: String]])?.first)
+        XCTAssertEqual(binary, ["TeamID": "*APPLE*"])
+    }
+
+    @MainActor
+    func testManualDeveloperTeamRuleTrimsOnlySurroundingWhitespace() {
+        let viewModel = makeViewModel(pickerResults: [], metadataResults: [])
+
+        XCTAssertTrue(viewModel.addDeveloperTeamRule(teamIdentifier: "  AbCd1234  "))
+
+        XCTAssertEqual(viewModel.entries.first?.rule, .developerTeam(teamIdentifier: "AbCd1234"))
+        XCTAssertEqual(viewModel.entries.first?.action, .allow)
+        XCTAssertTrue(viewModel.safetyWarnings.contains { $0.contains("AbCd1234") })
+    }
+
+    @MainActor
+    func testManualDeveloperRuleRejectsDuplicateAndUndocumentedWildcard() {
+        let viewModel = makeViewModel(pickerResults: [], metadataResults: [])
+
+        XCTAssertTrue(viewModel.addDeveloperTeamRule(teamIdentifier: "TEAM1"))
+        XCTAssertFalse(viewModel.addDeveloperTeamRule(teamIdentifier: "TEAM1"))
+        XCTAssertFalse(viewModel.addDeveloperTeamRule(teamIdentifier: "*GOOGLE*"))
+
+        XCTAssertEqual(viewModel.entries.count, 1)
+        XCTAssertEqual(
+            viewModel.workflowErrorMessage,
+            "Only the documented *APPLE* special Team ID token is supported."
+        )
+    }
+
+    @MainActor
+    func testManualAppleTokenCreatesTypedAppleRule() {
+        let viewModel = makeViewModel(pickerResults: [], metadataResults: [])
+
+        XCTAssertTrue(viewModel.addDeveloperTeamRule(teamIdentifier: "  *APPLE*  "))
+
+        XCTAssertEqual(viewModel.entries.map(\.rule), [.appleBinaries])
+        XCTAssertTrue(viewModel.allowsAllAppleBinaries)
+    }
+
+    @MainActor
+    func testSelectedApplicationCanBecomeDeveloperWideRuleUsingActualTeamID() async {
+        let url = appURL("Developer")
+        let viewModel = makeViewModel(
+            pickerResults: [.selected([url])],
+            metadataResults: [.success(metadata(for: url, name: "Developer"))],
+            signatureResults: [.success(signatureInfo(signingIdentifier: "developer.app", teamIdentifier: "ACTUALTEAM"))]
+        )
+        await viewModel.addApplications()
+        let entryID = viewModel.entries[0].id
+
+        viewModel.convertToDeveloperTeamRule(entryID: entryID)
+
+        XCTAssertEqual(viewModel.entries[0].rule, .developerTeam(teamIdentifier: "ACTUALTEAM"))
+        XCTAssertEqual(viewModel.entries[0].action, .allow)
+        XCTAssertNil(viewModel.entries[0].signingIdentifier)
+    }
+
+    @MainActor
+    func testPathPrefixCanBeEnabledEditedAndDisabled() async {
+        let url = appURL("Path App")
+        let viewModel = makeViewModel(
+            pickerResults: [.selected([url])],
+            metadataResults: [.success(metadata(for: url, name: "Path App"))],
+            signatureResults: [.success(signatureInfo(signingIdentifier: "path.app", teamIdentifier: "PATHTEAM"))]
+        )
+        await viewModel.addApplications()
+        let entryID = viewModel.entries[0].id
+        let editedPath = "/Applications/Custom Folder/Path App.app"
+
+        viewModel.setPathPrefix(editedPath, for: entryID)
+        XCTAssertEqual(viewModel.entries[0].pathPrefix, editedPath)
+        XCTAssertTrue(viewModel.canExport)
+
+        viewModel.setPathPrefix("relative/path", for: entryID)
+        XCTAssertEqual(viewModel.entries[0].validationState, .invalidPathPrefix)
+        XCTAssertFalse(viewModel.canExport)
+
+        viewModel.setPathPrefix(nil, for: entryID)
+        XCTAssertNil(viewModel.entries[0].pathPrefix)
+        XCTAssertTrue(viewModel.canExport)
+    }
+
+    @MainActor
+    func testBroadTeamRuleCreatesAndClearsRedundancyWarning() async throws {
+        let url = appURL("Redundant")
+        let viewModel = makeViewModel(
+            pickerResults: [.selected([url])],
+            metadataResults: [.success(metadata(for: url, name: "Redundant"))],
+            signatureResults: [.success(signatureInfo(signingIdentifier: "redundant.app", teamIdentifier: "TEAM1"))]
+        )
+        await viewModel.addApplications()
+        let specificID = viewModel.entries[0].id
+        viewModel.setAction(.allow, for: specificID)
+        XCTAssertTrue(viewModel.addDeveloperTeamRule(teamIdentifier: "TEAM1"))
+
+        XCTAssertTrue(viewModel.safetyWarnings.contains { $0.contains("may already include") })
+
+        let broadID = try XCTUnwrap(viewModel.entries.first { $0.rule.type == .developerTeam }?.id)
+        viewModel.removeEntry(id: broadID)
+        XCTAssertFalse(viewModel.safetyWarnings.contains { $0.contains("may already include") })
+    }
+
+    @MainActor
+    func testDifferentDeveloperTeamIDsRemainDistinct() {
+        let viewModel = makeViewModel(pickerResults: [], metadataResults: [])
+
+        XCTAssertTrue(viewModel.addDeveloperTeamRule(teamIdentifier: "TEAM1"))
+        XCTAssertTrue(viewModel.addDeveloperTeamRule(teamIdentifier: "TEAM2"))
+
+        XCTAssertEqual(viewModel.entries.count, 2)
+    }
+
+    @MainActor
+    func testCopyUsesJSONRegeneratedAfterOptionChanges() throws {
+        let clipboard = PolicyClipboardWriter()
+        let viewModel = makeViewModel(
+            pickerResults: [],
+            metadataResults: [],
+            clipboard: clipboard
+        )
+
+        viewModel.setAlwaysAllowManagedApps(true)
+        let expectedJSON = try XCTUnwrap(viewModel.jsonPreview)
+        viewModel.copyGeneratedJSON()
+
+        XCTAssertEqual(clipboard.copiedValues, [expectedJSON])
+        XCTAssertTrue(expectedJSON.contains("AlwaysAllowManagedApps"))
     }
 
     @MainActor

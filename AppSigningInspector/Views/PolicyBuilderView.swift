@@ -2,18 +2,26 @@ import SwiftUI
 
 struct PolicyBuilderView: View {
     @ObservedObject var viewModel: PolicyBuilderViewModel
+    @State private var editingEntry: PolicyEntry?
+    @State private var isAddingDeveloperTeam = false
 
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 18) {
                 header
 
-                if let warning = viewModel.allowOnlySafetyWarning {
-                    Label(warning, systemImage: "exclamationmark.triangle.fill")
-                        .font(.callout)
-                        .foregroundStyle(.orange)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
+                PolicyOptionsView(
+                    alwaysAllowManagedApps: Binding(
+                        get: { viewModel.alwaysAllowManagedApps },
+                        set: viewModel.setAlwaysAllowManagedApps
+                    ),
+                    allowAllAppleBinaries: Binding(
+                        get: { viewModel.allowsAllAppleBinaries },
+                        set: viewModel.setAllowAllAppleBinaries
+                    )
+                )
+
+                PolicySafetyWarningsView(warnings: viewModel.safetyWarnings)
 
                 PolicyBuilderMessagesView(
                     notices: viewModel.notices,
@@ -40,10 +48,20 @@ struct PolicyBuilderView: View {
             .padding(24)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .sheet(item: $editingEntry) { entry in
+            PolicyRuleEditorView(entry: entry) { rule, action in
+                viewModel.updateRule(rule, action: action, for: entry.id)
+            }
+        }
+        .sheet(isPresented: $isAddingDeveloperTeam) {
+            DeveloperTeamRuleSheet { teamIdentifier in
+                viewModel.addDeveloperTeamRule(teamIdentifier: teamIdentifier)
+            }
+        }
     }
 
     private var header: some View {
-        HStack(alignment: .center, spacing: 12) {
+        VStack(alignment: .leading, spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 Text("Policy Builder")
                     .font(.title2)
@@ -54,14 +72,21 @@ struct PolicyBuilderView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Spacer()
+            HStack(spacing: 10) {
+                Button {
+                    isAddingDeveloperTeam = true
+                } label: {
+                    Label("Add Developer Team", systemImage: "person.2.badge.plus")
+                }
+                .disabled(viewModel.isAddingApplications || viewModel.isExporting)
 
-            Button {
-                Task { await viewModel.addApplications() }
-            } label: {
-                Label("Add Applications", systemImage: "plus")
+                Button {
+                    Task { await viewModel.addApplications() }
+                } label: {
+                    Label("Add Applications", systemImage: "plus")
+                }
+                .disabled(viewModel.isAddingApplications || viewModel.isExporting)
             }
-            .disabled(viewModel.isAddingApplications || viewModel.isExporting)
         }
     }
 
@@ -78,9 +103,9 @@ struct PolicyBuilderView: View {
 
         if viewModel.entries.isEmpty, !viewModel.isAddingApplications {
             VStack(alignment: .leading, spacing: 8) {
-                Label("No applications in this policy", systemImage: "list.bullet.rectangle")
+                Label("No binary rules in this policy", systemImage: "list.bullet.rectangle")
                     .font(.headline)
-                Text("Add one or more macOS applications to begin.")
+                Text("Add applications, a developer Team ID, or a supported policy option.")
                     .foregroundStyle(.secondary)
             }
             .padding(.vertical, 20)
@@ -89,7 +114,7 @@ struct PolicyBuilderView: View {
                 ForEach(viewModel.entries) { entry in
                     PolicyEntryRow(
                         entry: entry,
-                        setAction: { viewModel.setAction($0, for: entry.id) },
+                        editAction: { editingEntry = entry },
                         removeAction: { viewModel.removeEntry(id: entry.id) }
                     )
                 }
@@ -98,62 +123,111 @@ struct PolicyBuilderView: View {
     }
 }
 
+private struct PolicyOptionsView: View {
+    @Binding var alwaysAllowManagedApps: Bool
+    @Binding var allowAllAppleBinaries: Bool
+
+    var body: some View {
+        GroupBox("Policy Options") {
+            VStack(alignment: .leading, spacing: 14) {
+                option(
+                    title: "Always Allow Managed Apps",
+                    description: "Permits applications that macOS recognizes as managed.",
+                    isOn: $alwaysAllowManagedApps
+                )
+
+                Divider()
+
+                option(
+                    title: "Allow All Apple Binaries",
+                    description: "Adds Apple's documented *APPLE* special Team ID rule.",
+                    isOn: $allowAllAppleBinaries
+                )
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 4)
+        }
+    }
+
+    private func option(
+        title: String,
+        description: String,
+        isOn: Binding<Bool>
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 3) {
+            Toggle(title, isOn: isOn)
+            Text(description)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+}
+
 private struct PolicyEntryRow: View {
     let entry: PolicyEntry
-    let setAction: (PolicyAction) -> Void
+    let editAction: () -> Void
     let removeAction: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(alignment: .top, spacing: 12) {
-                Image(nsImage: entry.icon)
-                    .resizable()
-                    .frame(width: 42, height: 42)
-                    .accessibilityHidden(true)
+                entryIcon
 
                 VStack(alignment: .leading, spacing: 3) {
                     Text(entry.displayName)
                         .font(.headline)
                         .lineLimit(1)
-                    Text(entry.applicationURL.path)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                        .textSelection(.enabled)
+                    if let applicationURL = entry.applicationURL {
+                        Text(applicationURL.path)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .textSelection(.enabled)
+                    }
                 }
 
                 Spacer(minLength: 8)
 
-                Picker("Action", selection: Binding(
-                    get: { entry.action },
-                    set: setAction
-                )) {
-                    ForEach(PolicyAction.allCases, id: \.self) { action in
-                        Text(action.displayValue).tag(action)
-                    }
+                Text(entry.action.displayValue)
+                    .font(.caption)
+                    .fontWeight(.semibold)
+
+                Button(action: editAction) {
+                    Image(systemName: "pencil")
                 }
-                .pickerStyle(.segmented)
-                .labelsHidden()
-                .frame(width: 130)
+                .buttonStyle(.borderless)
+                .help("Edit rule")
+                .accessibilityLabel("Edit \(entry.displayName)")
 
                 Button(action: removeAction) {
                     Image(systemName: "trash")
                 }
                 .buttonStyle(.borderless)
-                .help("Remove application")
+                .help("Remove rule")
                 .accessibilityLabel("Remove \(entry.displayName)")
             }
 
             Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 5) {
-                PolicyValueRow(label: "Signing ID", value: entry.signingIdentifier ?? "Unavailable")
-                PolicyValueRow(label: "Team ID", value: entry.teamIdentifier ?? "Unavailable")
+                PolicyValueRow(label: "Rule Type", value: entry.rule.type.displayValue)
+                if let signingIdentifier = entry.signingIdentifier {
+                    PolicyValueRow(label: "Signing ID", value: signingIdentifier)
+                }
+                if let teamIdentifier = entry.teamIdentifier {
+                    PolicyValueRow(label: "Team ID", value: teamIdentifier)
+                }
+                if let pathPrefix = entry.pathPrefix {
+                    PolicyValueRow(label: "Path Prefix", value: pathPrefix)
+                }
+                if let signingAuthority = entry.signingAuthority {
+                    PolicyValueRow(label: "Signing Authority", value: signingAuthority)
+                }
             }
 
             if let message = entry.validationState.message {
                 Label(message, systemImage: "exclamationmark.triangle")
                     .font(.caption)
-                    .foregroundStyle(.orange)
             }
 
             if let details = entry.validationState.diagnosticDetails, !details.isEmpty {
@@ -173,6 +247,21 @@ private struct PolicyEntryRow: View {
         .overlay {
             RoundedRectangle(cornerRadius: 6)
                 .stroke(Color(nsColor: .separatorColor), lineWidth: 1)
+        }
+    }
+
+    @ViewBuilder
+    private var entryIcon: some View {
+        if let icon = entry.icon {
+            Image(nsImage: icon)
+                .resizable()
+                .frame(width: 42, height: 42)
+                .accessibilityHidden(true)
+        } else {
+            Image(systemName: entry.rule.type == .appleBinaries ? "apple.logo" : "person.2")
+                .font(.title2)
+                .frame(width: 42, height: 42)
+                .accessibilityHidden(true)
         }
     }
 }
@@ -195,6 +284,20 @@ private struct PolicyValueRow: View {
     }
 }
 
+private struct PolicySafetyWarningsView: View {
+    let warnings: [String]
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            ForEach(warnings, id: \.self) { warning in
+                Label(warning, systemImage: "exclamationmark.triangle.fill")
+                    .font(.callout)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+    }
+}
+
 private struct PolicyBuilderMessagesView: View {
     let notices: [PolicyBuilderNotice]
     let workflowErrorMessage: String?
@@ -207,7 +310,6 @@ private struct PolicyBuilderMessagesView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Label(notice.message, systemImage: "exclamationmark.triangle")
                         .font(.callout)
-                        .foregroundStyle(.orange)
                     if let details = notice.diagnosticDetails {
                         Text(details)
                             .font(.caption)
