@@ -16,7 +16,7 @@ Current version:
 
 The initial development focus is the Version 1.0 application-inspection and DDM policy-builder workflow.
 
-The current inspection workflow displays application metadata and code-signature details, including Signing ID, Team ID, signing authorities, signature validity, code-signing flags, hardened runtime status, and timestamp where available.
+The current inspection workflow displays application metadata and code-signature details, including Signing ID, Team ID, signing authorities, the designated code requirement, signature validity, code-signing flags, hardened runtime status, and timestamp where available.
 
 ## Platform Support
 
@@ -209,6 +209,8 @@ Potential tools include:
 Shell and platform interactions must be isolated behind services. SwiftUI views must not execute these tools directly.
 
 Code-signature inspection launches `/usr/bin/codesign` directly through a process-running service. Process execution, output parsing, and view-model presentation are separate so command output can be tested without invoking live system tools.
+
+Designated requirements are retrieved with `codesign -dr -` and shown without reconstructing or simplifying the requirement expression. Failure to retrieve a designated requirement does not discard other signature information.
 
 ## Development Guidelines
 
