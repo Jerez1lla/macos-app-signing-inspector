@@ -16,6 +16,11 @@
 		111111111111111111111107 /* ApplicationIconLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111009 /* ApplicationIconLoading.swift */; };
 		111111111111111111111108 /* ApplicationPickerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111010 /* ApplicationPickerService.swift */; };
 		111111111111111111111109 /* ApplicationBrowserViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111011 /* ApplicationBrowserViewModel.swift */; };
+		11111111111111111111110A /* ApplicationMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111012 /* ApplicationMetadata.swift */; };
+		11111111111111111111110B /* ApplicationMetadataInspecting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111013 /* ApplicationMetadataInspecting.swift */; };
+		11111111111111111111110C /* ClipboardWriting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111014 /* ClipboardWriting.swift */; };
+		11111111111111111111110D /* ApplicationMetadataInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111015 /* ApplicationMetadataInspector.swift */; };
+		11111111111111111111110E /* PasteboardClipboardWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111016 /* PasteboardClipboardWriter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +45,11 @@
 		111111111111111111111009 /* ApplicationIconLoading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationIconLoading.swift; sourceTree = "<group>"; };
 		111111111111111111111010 /* ApplicationPickerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationPickerService.swift; sourceTree = "<group>"; };
 		111111111111111111111011 /* ApplicationBrowserViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationBrowserViewModel.swift; sourceTree = "<group>"; };
+		111111111111111111111012 /* ApplicationMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationMetadata.swift; sourceTree = "<group>"; };
+		111111111111111111111013 /* ApplicationMetadataInspecting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationMetadataInspecting.swift; sourceTree = "<group>"; };
+		111111111111111111111014 /* ClipboardWriting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardWriting.swift; sourceTree = "<group>"; };
+		111111111111111111111015 /* ApplicationMetadataInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationMetadataInspector.swift; sourceTree = "<group>"; };
+		111111111111111111111016 /* PasteboardClipboardWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardClipboardWriter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +106,7 @@
 		111111111111111111111610 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				111111111111111111111012 /* ApplicationMetadata.swift */,
 				111111111111111111111007 /* SelectedApplication.swift */,
 			);
 			path = Models;
@@ -120,7 +131,9 @@
 		111111111111111111111613 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				111111111111111111111015 /* ApplicationMetadataInspector.swift */,
 				111111111111111111111010 /* ApplicationPickerService.swift */,
+				111111111111111111111016 /* PasteboardClipboardWriter.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -129,7 +142,9 @@
 			isa = PBXGroup;
 			children = (
 				111111111111111111111009 /* ApplicationIconLoading.swift */,
+				111111111111111111111013 /* ApplicationMetadataInspecting.swift */,
 				111111111111111111111008 /* ApplicationPicking.swift */,
+				111111111111111111111014 /* ClipboardWriting.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -267,9 +282,14 @@
 				111111111111111111111101 /* AppSigningInspectorApp.swift in Sources */,
 				111111111111111111111109 /* ApplicationBrowserViewModel.swift in Sources */,
 				111111111111111111111107 /* ApplicationIconLoading.swift in Sources */,
+				11111111111111111111110A /* ApplicationMetadata.swift in Sources */,
+				11111111111111111111110B /* ApplicationMetadataInspecting.swift in Sources */,
 				111111111111111111111106 /* ApplicationPicking.swift in Sources */,
 				111111111111111111111108 /* ApplicationPickerService.swift in Sources */,
+				11111111111111111111110D /* ApplicationMetadataInspector.swift in Sources */,
+				11111111111111111111110C /* ClipboardWriting.swift in Sources */,
 				111111111111111111111102 /* ContentView.swift in Sources */,
+				11111111111111111111110E /* PasteboardClipboardWriter.swift in Sources */,
 				111111111111111111111105 /* SelectedApplication.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -326,6 +346,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -350,6 +371,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 6.0;
@@ -389,6 +411,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -406,6 +429,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 6.0;
@@ -419,6 +443,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "App Signing Inspector";
@@ -444,6 +469,7 @@
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "App Signing Inspector";
@@ -469,6 +495,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -492,6 +519,7 @@
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
