@@ -13,6 +13,37 @@ struct CodeSignatureInfo: Equatable, Sendable {
     let signingOrigin: CodeSigningOrigin
     let diagnostics: [CodeSignatureDiagnostic]
     let processResults: [ProcessResult]
+    let designatedRequirementInspection: DesignatedRequirementInspection?
+
+    init(
+        signingIdentifier: String?,
+        teamIdentifier: String?,
+        authorities: [String],
+        format: String?,
+        codeDirectoryVersion: String?,
+        flags: String?,
+        hardenedRuntimeEnabled: Bool?,
+        timestamp: String?,
+        signatureStatus: CodeSignatureStatus,
+        signingOrigin: CodeSigningOrigin,
+        diagnostics: [CodeSignatureDiagnostic],
+        processResults: [ProcessResult],
+        designatedRequirementInspection: DesignatedRequirementInspection? = nil
+    ) {
+        self.signingIdentifier = signingIdentifier
+        self.teamIdentifier = teamIdentifier
+        self.authorities = authorities
+        self.format = format
+        self.codeDirectoryVersion = codeDirectoryVersion
+        self.flags = flags
+        self.hardenedRuntimeEnabled = hardenedRuntimeEnabled
+        self.timestamp = timestamp
+        self.signatureStatus = signatureStatus
+        self.signingOrigin = signingOrigin
+        self.diagnostics = diagnostics
+        self.processResults = processResults
+        self.designatedRequirementInspection = designatedRequirementInspection
+    }
 
     var isAppleSigned: Bool? {
         switch signingOrigin {
@@ -26,7 +57,39 @@ struct CodeSignatureInfo: Equatable, Sendable {
     }
 
     var rawDiagnostics: String {
-        processResults.map(\.diagnosticText).joined(separator: "\n\n")
+        var details = processResults.map(\.diagnosticText)
+        if let inspection = designatedRequirementInspection,
+           inspection.processResult == nil,
+           let diagnosticDetails = inspection.diagnosticDetails,
+           !diagnosticDetails.isEmpty {
+            details.append(diagnosticDetails)
+        }
+        return details.joined(separator: "\n\n")
+    }
+
+    var designatedRequirement: String? {
+        designatedRequirementInspection?.requirement
+    }
+
+    func includingDesignatedRequirement(
+        _ inspection: DesignatedRequirementInspection
+    ) -> CodeSignatureInfo {
+        let requirementResults = inspection.processResult.map { [$0] } ?? []
+        return CodeSignatureInfo(
+            signingIdentifier: signingIdentifier,
+            teamIdentifier: teamIdentifier,
+            authorities: authorities,
+            format: format,
+            codeDirectoryVersion: codeDirectoryVersion,
+            flags: flags,
+            hardenedRuntimeEnabled: hardenedRuntimeEnabled,
+            timestamp: timestamp,
+            signatureStatus: signatureStatus,
+            signingOrigin: signingOrigin,
+            diagnostics: diagnostics,
+            processResults: processResults + requirementResults,
+            designatedRequirementInspection: inspection
+        )
     }
 
     var signingIdentifierDisplayValue: String {
@@ -114,6 +177,39 @@ enum CodeSignatureDiagnostic: Equatable, Sendable {
             return "Signing ID is unavailable."
         case .missingTeamIdentifier:
             return "Team ID is unavailable."
+        }
+    }
+}
+
+struct DesignatedRequirementInspection: Equatable, Sendable {
+    let requirement: String?
+    let status: DesignatedRequirementStatus
+    let diagnosticDetails: String?
+    let processResult: ProcessResult?
+}
+
+enum DesignatedRequirementStatus: Equatable, Sendable {
+    case available
+    case unsigned
+    case notPresent
+    case malformedOutput
+    case executionFailed
+    case applicationUnavailable
+
+    var displayValue: String {
+        switch self {
+        case .available:
+            return "Available"
+        case .unsigned:
+            return "Not applicable (unsigned)"
+        case .notPresent:
+            return "Not present"
+        case .malformedOutput:
+            return "Unavailable (output could not be parsed)"
+        case .executionFailed:
+            return "Unavailable (codesign failed)"
+        case .applicationUnavailable:
+            return "Unavailable (application removed)"
         }
     }
 }

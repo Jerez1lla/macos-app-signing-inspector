@@ -199,10 +199,11 @@ final class CodeSignatureOutputParserTests: XCTestCase {
 }
 
 final class ApplicationCodeSignatureInspectorTests: XCTestCase {
-    func testInspectorRunsDisplayThenVerificationWithoutShellOrDeepInspection() async throws {
+    func testInspectorRunsDisplayVerificationAndRequirementWithoutShellOrDeepInspection() async throws {
         let appURL = try makeApplicationBundle(named: "Signed")
         let displayArguments = ["--display", "--verbose=4", appURL.path]
         let verificationArguments = ["--verify", "--verbose=4", appURL.path]
+        let requirementArguments = ["-dr", "-", appURL.path]
         let runner = QueueProcessRunner(results: [
             .success(ProcessResult(
                 executableURL: ApplicationCodeSignatureInspector.codesignURL,
@@ -217,6 +218,13 @@ final class ApplicationCodeSignatureInspectorTests: XCTestCase {
                 terminationStatus: 0,
                 standardOutput: "",
                 standardError: "\(appURL.path): valid on disk"
+            )),
+            .success(ProcessResult(
+                executableURL: ApplicationCodeSignatureInspector.codesignURL,
+                arguments: requirementArguments,
+                terminationStatus: 0,
+                standardOutput: "",
+                standardError: "designated => \(CodeSignatureFixtures.designatedRequirement)"
             ))
         ])
         let inspector = ApplicationCodeSignatureInspector(processRunner: runner)
@@ -225,6 +233,7 @@ final class ApplicationCodeSignatureInspectorTests: XCTestCase {
         let invocations = await runner.recordedInvocations()
 
         XCTAssertEqual(info.signatureStatus, .valid)
+        XCTAssertEqual(info.designatedRequirement, CodeSignatureFixtures.designatedRequirement)
         XCTAssertEqual(invocations, [
             ProcessInvocation(
                 executableURL: ApplicationCodeSignatureInspector.codesignURL,
@@ -233,6 +242,10 @@ final class ApplicationCodeSignatureInspectorTests: XCTestCase {
             ProcessInvocation(
                 executableURL: ApplicationCodeSignatureInspector.codesignURL,
                 arguments: verificationArguments
+            ),
+            ProcessInvocation(
+                executableURL: ApplicationCodeSignatureInspector.codesignURL,
+                arguments: requirementArguments
             )
         ])
         XCTAssertFalse(invocations.flatMap(\.arguments).contains("--deep"))
@@ -256,6 +269,7 @@ final class ApplicationCodeSignatureInspectorTests: XCTestCase {
         let invocations = await runner.recordedInvocations()
 
         XCTAssertEqual(info.signatureStatus, .unsigned)
+        XCTAssertEqual(info.designatedRequirementInspection?.status, .unsigned)
         XCTAssertEqual(invocations.count, 1)
         XCTAssertEqual(invocations.first?.arguments, displayArguments)
     }
@@ -279,6 +293,45 @@ final class ApplicationCodeSignatureInspectorTests: XCTestCase {
                 .processExecution(processError)
             )
         }
+    }
+
+    func testRequirementExecutionFailurePreservesCoreSignatureInformation() async throws {
+        let appURL = try makeApplicationBundle(named: "RequirementFailure")
+        let displayArguments = ["--display", "--verbose=4", appURL.path]
+        let verificationArguments = ["--verify", "--verbose=4", appURL.path]
+        let requirementArguments = ["-dr", "-", appURL.path]
+        let requirementError = ProcessExecutionError.launchFailed(
+            executableURL: ApplicationCodeSignatureInspector.codesignURL,
+            arguments: requirementArguments,
+            description: "Unable to launch requirement inspection"
+        )
+        let runner = QueueProcessRunner(results: [
+            .success(ProcessResult(
+                executableURL: ApplicationCodeSignatureInspector.codesignURL,
+                arguments: displayArguments,
+                terminationStatus: 0,
+                standardOutput: "",
+                standardError: CodeSignatureFixtures.thirdPartySigned
+            )),
+            .success(ProcessResult(
+                executableURL: ApplicationCodeSignatureInspector.codesignURL,
+                arguments: verificationArguments,
+                terminationStatus: 0,
+                standardOutput: "",
+                standardError: "\(appURL.path): valid on disk"
+            )),
+            .failure(requirementError)
+        ])
+        let inspector = ApplicationCodeSignatureInspector(processRunner: runner)
+
+        let info = try await inspector.inspect(applicationAt: appURL)
+
+        XCTAssertEqual(info.signingIdentifier, "com.example.signed")
+        XCTAssertEqual(info.teamIdentifier, "ABCDE12345")
+        XCTAssertEqual(info.signatureStatus, .valid)
+        XCTAssertNil(info.designatedRequirement)
+        XCTAssertEqual(info.designatedRequirementInspection?.status, .executionFailed)
+        XCTAssertTrue(info.rawDiagnostics.contains("Unable to launch requirement inspection"))
     }
 
     private func makeApplicationBundle(named name: String) throws -> URL {
@@ -342,4 +395,5 @@ private enum CodeSignatureFixtures {
     static let unsigned = "/Applications/Unsigned.app: code object is not signed at all"
     static let invalid = "/Applications/Example.app: a sealed resource is missing or invalid"
     static let malformed = "Unexpected output with no recognized code-signature fields"
+    static let designatedRequirement = "identifier \"com.example.signed\" and anchor apple generic and certificate leaf[subject.OU] = \"ABCDE12345\""
 }
