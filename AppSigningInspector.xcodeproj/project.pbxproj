@@ -56,6 +56,10 @@
 		11111111111111111111112F /* DDMDeclarationGeneratorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111103D /* DDMDeclarationGeneratorTests.swift */; };
 		111111111111111111111130 /* PolicyBuilderViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111103E /* PolicyBuilderViewModelTests.swift */; };
 		111111111111111111111131 /* WorkspaceNavigationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111103F /* WorkspaceNavigationTests.swift */; };
+		111111111111111111111132 /* PolicyRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111040 /* PolicyRule.swift */; };
+		111111111111111111111133 /* PolicyRuleValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111041 /* PolicyRuleValidator.swift */; };
+		111111111111111111111134 /* PolicyRuleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111042 /* PolicyRuleEditorView.swift */; };
+		111111111111111111111135 /* PolicyRuleValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111043 /* PolicyRuleValidatorTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -120,6 +124,10 @@
 		11111111111111111111103D /* DDMDeclarationGeneratorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDMDeclarationGeneratorTests.swift; sourceTree = "<group>"; };
 		11111111111111111111103E /* PolicyBuilderViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyBuilderViewModelTests.swift; sourceTree = "<group>"; };
 		11111111111111111111103F /* WorkspaceNavigationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkspaceNavigationTests.swift; sourceTree = "<group>"; };
+		111111111111111111111040 /* PolicyRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRule.swift; sourceTree = "<group>"; };
+		111111111111111111111041 /* PolicyRuleValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRuleValidator.swift; sourceTree = "<group>"; };
+		111111111111111111111042 /* PolicyRuleEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRuleEditorView.swift; sourceTree = "<group>"; };
+		111111111111111111111043 /* PolicyRuleValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRuleValidatorTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -181,6 +189,7 @@
 				111111111111111111111018 /* CodeSignatureInfo.swift */,
 				111111111111111111111033 /* DDMApplicationSettingsDeclaration.swift */,
 				111111111111111111111034 /* PolicyEntry.swift */,
+				111111111111111111111040 /* PolicyRule.swift */,
 				111111111111111111111017 /* ProcessResult.swift */,
 				111111111111111111111007 /* SelectedApplication.swift */,
 				111111111111111111111035 /* WorkspaceDestination.swift */,
@@ -193,6 +202,7 @@
 			children = (
 				111111111111111111111002 /* ContentView.swift */,
 				11111111111111111111103C /* PolicyBuilderView.swift */,
+				111111111111111111111042 /* PolicyRuleEditorView.swift */,
 				111111111111111111111032 /* SecuritySectionView.swift */,
 			);
 			path = Views;
@@ -222,6 +232,7 @@
 				11111111111111111111102C /* GatekeeperAssessmentParser.swift */,
 				11111111111111111111103A /* JSONExportService.swift */,
 				111111111111111111111016 /* PasteboardClipboardWriter.swift */,
+				111111111111111111111041 /* PolicyRuleValidator.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -272,6 +283,7 @@
 				111111111111111111111029 /* DesignatedRequirementOutputParserTests.swift */,
 				11111111111111111111102F /* GatekeeperAssessmentParserTests.swift */,
 				11111111111111111111103E /* PolicyBuilderViewModelTests.swift */,
+				111111111111111111111043 /* PolicyRuleValidatorTests.swift */,
 				11111111111111111111103F /* WorkspaceNavigationTests.swift */,
 				111111111111111111111701 /* Fixtures */,
 			);
@@ -416,6 +428,9 @@
 				11111111111111111111112D /* PolicyBuilderViewModel.swift in Sources */,
 				11111111111111111111112E /* PolicyBuilderView.swift in Sources */,
 				111111111111111111111126 /* PolicyEntry.swift in Sources */,
+				111111111111111111111132 /* PolicyRule.swift in Sources */,
+				111111111111111111111133 /* PolicyRuleValidator.swift in Sources */,
+				111111111111111111111134 /* PolicyRuleEditorView.swift in Sources */,
 				11111111111111111111110F /* ProcessResult.swift in Sources */,
 				111111111111111111111111 /* ProcessRunning.swift in Sources */,
 				111111111111111111111124 /* SecuritySectionView.swift in Sources */,
@@ -438,6 +453,7 @@
 				11111111111111111111111B /* DesignatedRequirementOutputParserTests.swift in Sources */,
 				111111111111111111111121 /* GatekeeperAssessmentParserTests.swift in Sources */,
 				111111111111111111111130 /* PolicyBuilderViewModelTests.swift in Sources */,
+				111111111111111111111135 /* PolicyRuleValidatorTests.swift in Sources */,
 				111111111111111111111131 /* WorkspaceNavigationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

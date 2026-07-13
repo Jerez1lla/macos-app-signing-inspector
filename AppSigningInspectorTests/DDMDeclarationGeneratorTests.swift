@@ -29,13 +29,15 @@ final class DDMDeclarationGeneratorTests: XCTestCase {
         XCTAssertEqual(generated.declaration.payload.allowed.allowedBinaries, [
             DDMApplicationBinary(
                 signingIdentifier: "com.example.allowed",
-                teamIdentifier: "ALLOWTEAM"
+                teamIdentifier: "ALLOWTEAM",
+                pathPrefix: nil
             )
         ])
         XCTAssertEqual(generated.declaration.payload.allowed.deniedBinaries, [
             DDMApplicationBinary(
                 signingIdentifier: "com.example.denied",
-                teamIdentifier: "DENYTEAM"
+                teamIdentifier: "DENYTEAM",
+                pathPrefix: nil
             )
         ])
     }
@@ -71,11 +73,11 @@ final class DDMDeclarationGeneratorTests: XCTestCase {
         )
 
         XCTAssertEqual(
-            generated.declaration.payload.allowed.allowedBinaries.map(\.signingIdentifier),
+            generated.declaration.payload.allowed.allowedBinaries?.compactMap(\.signingIdentifier),
             ["allow.one", "allow.two"]
         )
         XCTAssertEqual(
-            generated.declaration.payload.allowed.deniedBinaries.map(\.signingIdentifier),
+            generated.declaration.payload.allowed.deniedBinaries?.compactMap(\.signingIdentifier),
             ["deny.one", "deny.two"]
         )
     }
@@ -107,14 +109,112 @@ final class DDMDeclarationGeneratorTests: XCTestCase {
         }
     }
 
+    func testManagedAppsOnlyProducesTrueAndOmitsBinaryArrays() throws {
+        let generated = try generator.generate(
+            entries: [],
+            alwaysAllowManagedApps: true,
+            identifier: identifier,
+            serverToken: serverToken
+        )
+        let allowed = generated.declaration.payload.allowed
+
+        XCTAssertEqual(allowed.alwaysAllowManagedApps, true)
+        XCTAssertNil(allowed.allowedBinaries)
+        XCTAssertNil(allowed.deniedBinaries)
+    }
+
+    func testDisabledManagedAppsOmitsKey() throws {
+        let generated = try generator.generate(
+            entries: [candidate("app.id", "TEAM1", .deny)],
+            identifier: identifier,
+            serverToken: serverToken
+        )
+        let object = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: Data(generated.json.utf8)) as? [String: Any]
+        )
+        let payload = try XCTUnwrap(object["Payload"] as? [String: Any])
+        let allowed = try XCTUnwrap(payload["Allowed"] as? [String: Any])
+
+        XCTAssertNil(allowed["AlwaysAllowManagedApps"])
+    }
+
+    func testManagedAppsCombinesWithAllowedAndDeniedRules() throws {
+        let generated = try generator.generate(
+            entries: [
+                candidate("allow.id", "TEAM1", .allow),
+                candidate("deny.id", "TEAM2", .deny)
+            ],
+            alwaysAllowManagedApps: true,
+            identifier: identifier,
+            serverToken: serverToken
+        )
+        let allowed = generated.declaration.payload.allowed
+
+        XCTAssertEqual(allowed.alwaysAllowManagedApps, true)
+        XCTAssertEqual(allowed.allowedBinaries?.count, 1)
+        XCTAssertEqual(allowed.deniedBinaries?.count, 1)
+    }
+
+    func testAppleAndDeveloperRulesUseTeamIDOnly() throws {
+        let generated = try generator.generate(
+            entries: [
+                PolicyBinaryCandidate(rule: .appleBinaries, action: .allow),
+                PolicyBinaryCandidate(rule: .developerTeam(teamIdentifier: "EQHXZ8M8AV"), action: .allow)
+            ],
+            identifier: identifier,
+            serverToken: serverToken
+        )
+        let binaries = try XCTUnwrap(generated.declaration.payload.allowed.allowedBinaries)
+
+        XCTAssertEqual(binaries.map(\.teamIdentifier), ["*APPLE*", "EQHXZ8M8AV"])
+        XCTAssertTrue(binaries.allSatisfy { $0.signingIdentifier == nil && $0.pathPrefix == nil })
+        XCTAssertFalse(generated.json.contains("null"))
+    }
+
+    func testSpecificApplicationIncludesOptionalAbsolutePathWithSpaces() throws {
+        let path = "/Applications/Example App.app"
+        let generated = try generator.generate(
+            entries: [PolicyBinaryCandidate(
+                rule: .specificApplication(
+                    signingIdentifier: "com.example.app",
+                    teamIdentifier: "TEAM1",
+                    pathPrefix: path
+                ),
+                action: .allow
+            )],
+            identifier: identifier,
+            serverToken: serverToken
+        )
+        let binary = try XCTUnwrap(generated.declaration.payload.allowed.allowedBinaries?.first)
+
+        XCTAssertEqual(binary.pathPrefix, path)
+        XCTAssertTrue(generated.json.contains(path))
+    }
+
+    func testTeamOnlyDenyRuleIsRejectedUntilSchemaIsVerified() {
+        XCTAssertThrowsError(try generator.generate(
+            entries: [PolicyBinaryCandidate(
+                rule: .developerTeam(teamIdentifier: "TEAM1"),
+                action: .deny
+            )],
+            identifier: identifier,
+            serverToken: serverToken
+        )) { error in
+            XCTAssertEqual(error as? DDMDeclarationGenerationError, .invalidEntries)
+        }
+    }
+
     private func candidate(
         _ signingIdentifier: String,
         _ teamIdentifier: String,
         _ action: PolicyAction
     ) -> PolicyBinaryCandidate {
         PolicyBinaryCandidate(
-            signingIdentifier: signingIdentifier,
-            teamIdentifier: teamIdentifier,
+            rule: .specificApplication(
+                signingIdentifier: signingIdentifier,
+                teamIdentifier: teamIdentifier,
+                pathPrefix: nil
+            ),
             action: action
         )
     }

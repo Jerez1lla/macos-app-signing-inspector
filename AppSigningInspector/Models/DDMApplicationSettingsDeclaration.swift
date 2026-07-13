@@ -23,22 +23,26 @@ struct DDMApplicationSettingsPayload: Codable, Equatable, Sendable {
 }
 
 struct DDMAllowedApplicationSettings: Codable, Equatable, Sendable {
-    let allowedBinaries: [DDMApplicationBinary]
-    let deniedBinaries: [DDMApplicationBinary]
+    let alwaysAllowManagedApps: Bool?
+    let allowedBinaries: [DDMApplicationBinary]?
+    let deniedBinaries: [DDMApplicationBinary]?
 
     enum CodingKeys: String, CodingKey {
+        case alwaysAllowManagedApps = "AlwaysAllowManagedApps"
         case allowedBinaries = "AllowedBinaries"
         case deniedBinaries = "DeniedBinaries"
     }
 }
 
 struct DDMApplicationBinary: Codable, Equatable, Sendable {
-    let signingIdentifier: String
+    let signingIdentifier: String?
     let teamIdentifier: String
+    let pathPrefix: String?
 
     enum CodingKeys: String, CodingKey {
         case signingIdentifier = "SigningID"
         case teamIdentifier = "TeamID"
+        case pathPrefix = "PathPrefix"
     }
 }
 

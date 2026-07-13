@@ -33,6 +33,8 @@ Story 6 must not move Inspector fields into the Policy Builder, require a policy
 
 The Policy Builder is a separate detail workspace responsible for multi-application policy state, allow or deny assignment, editing and removal, duplicate and required-value validation, declaration generation, JSON preview, copy, local export, and allow-only safety warnings.
 
+The advanced Story 6 scope also includes typed specific-application, developer Team ID, and Apple-binary rules; optional absolute `PathPrefix`; and `AlwaysAllowManagedApps`. These features follow macOS 27 AppleSeed beta test documentation and must remain easy to revise as the schema changes. Only the documented `*APPLE*` special token is supported. Developer Team rules remain Allow-only until a Team-ID-only denied object is explicitly verified.
+
 The Policy Builder may present the application name, icon, Signing ID, Team ID, policy action, and validation status needed for policy editing. It must not become a duplicate of the full Inspector interface.
 
 ## Navigation And State Ownership
