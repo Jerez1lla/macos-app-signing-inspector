@@ -14,7 +14,7 @@ Current version:
 
 `0.1.0`
 
-The initial development focus is project setup and the Version 1.0 application-inspection and DDM policy-builder workflow.
+The initial development focus is the Version 1.0 application-inspection and DDM policy-builder workflow.
 
 ## Platform Support
 
@@ -145,7 +145,8 @@ The initial project uses manual local code signing for development. If Xcode pro
 1. Open the project in Xcode.
 2. Select the App Signing Inspector scheme.
 3. Choose **Product > Run**, or press `Command-R`.
-4. Confirm the placeholder window opens and shows that no application is selected.
+4. Use **Select Application** to choose one macOS `.app` bundle.
+5. Confirm the selected application's name, icon, and path are displayed.
 
 ## Running Tests
 
