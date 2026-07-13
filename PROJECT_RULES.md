@@ -13,7 +13,7 @@ The product scope for Version 1.0 is defined in `README.md`. Long-term product d
 * SwiftUI views should be responsible primarily for presentation and user interaction.
 * Keep business logic out of SwiftUI views.
 * Keep platform inspection and shell execution behind dedicated services and protocols.
-* Make parsing and JSON-generation logic independently testable.
+* Make parsing, policy modeling, validation, duplicate detection, and JSON-generation logic independently testable.
 * Prefer dependency injection where it improves testing and maintainability.
 * Avoid unnecessary abstraction or architectural complexity.
 * Do not use third-party libraries unless they are reviewed and approved.
@@ -56,6 +56,9 @@ The exact structure may evolve as the project grows, but files should be grouped
 * Support keyboard navigation where practical.
 * Display important signing values clearly and make them easy to copy.
 * Keep advanced details available without overwhelming the primary workflow.
+* Make multi-application policy state clear, editable, and reviewable before JSON is copied or exported.
+* Clearly distinguish allowed and denied policy actions.
+* Display duplicate entries, missing required values, and allow-only policy safety warnings before export.
 * Use progress indicators for inspection work that may take noticeable time.
 * Ensure empty, loading, success, and failure states are represented clearly.
 
@@ -104,12 +107,14 @@ Clearly distinguish between:
 ## Testing
 
 * Unit test parsing, validation, and payload generation.
+* Unit test policy models, allow/deny assignment, duplicate detection, and required-value validation.
 * Test code-signing output parsing independently from live system commands.
 * Avoid unit tests that depend on applications installed on the developer's machine.
 * Mark tests that invoke live macOS tools as integration tests.
 * Keep integration tests separate from deterministic unit tests.
 * Add UI or snapshot tests only when they provide meaningful value.
 * Payload-generation tests should verify exact expected JSON structure.
+* Payload-generation tests should verify deterministic ordering and stable formatting.
 * Tests must not require network access unless explicitly documented.
 
 Use fixtures representing:
@@ -135,6 +140,9 @@ Use fixtures representing:
 * Clearly distinguish local inspection results from authoritative verification performed by Apple or another external service.
 * Treat all selected paths and command outputs as untrusted input.
 * Do not construct shell command strings using unescaped user-controlled values.
+* Do not automatically add management tools, security tools, agents, or background services to generated policies without clear user action.
+* Do not store future MDM or Jamf credentials in plaintext.
+* Keep future network integrations behind explicit service boundaries and least-privilege permission assumptions.
 
 ## Third-Party Dependencies
 
@@ -155,15 +163,29 @@ Prefer Apple frameworks and small internal implementations when reasonable.
 ## DDM Payload Generation
 
 * Generated payload data must follow Apple's documented schema.
+* Model DDM policies as structured data before encoding JSON.
+* Support multiple selected applications with explicit allowed or denied policy actions.
 * Keep payload models separate from UI code.
 * Use `Codable` and `JSONEncoder` where practical.
 * Do not build JSON through manual string concatenation.
-* Generate valid UUID values for declaration identifiers and server tokens when required by an approved feature.
+* Generate valid UUID values for declaration identifiers and server tokens.
+* Generate `AllowedBinaries` and `DeniedBinaries` arrays from validated policy state.
+* Detect duplicate applications and duplicate signing entries before generation or export.
 * Format exported JSON for readability.
+* Keep generated JSON deterministic so equivalent policy state produces equivalent JSON except for intentionally generated UUID values.
 * Validate required fields before generating payload content.
+* Validate required values before allowing local JSON export.
+* Export JSON only to user-selected local file destinations.
 * Clearly label payload functionality that is specific to macOS 27.
 * Do not imply that generating valid JSON guarantees successful enforcement by an MDM server or device.
 * Do not invent undocumented payload fields or behaviors.
+
+## Future Integration Boundaries
+
+* Direct Jamf Pro integration is outside Version 1.0.
+* Do not add Jamf API calls, credential storage, or remote declaration upload without an approved feature.
+* Future Jamf integration must depend on stable and fully documented public Jamf APIs for Blueprint and custom declaration management.
+* Future Jamf integration must support secure authentication, avoid plaintext credential storage, and respect least-privilege API roles.
 
 ## Definition of Done
 

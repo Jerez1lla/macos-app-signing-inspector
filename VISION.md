@@ -4,7 +4,7 @@
 
 App Signing Inspector will be a native macOS utility designed to help Mac administrators inspect application metadata, code-signing information, security attributes, and binary details without requiring them to manually run and interpret Terminal commands.
 
-The application should make it easy for administrators to identify the values required for application management, security troubleshooting, and Declarative Device Management configurations, especially the `SigningID` and `TeamID` values used by the macOS 27 `com.apple.configuration.app.settings` declaration.
+The application should make it easy for administrators to identify the values required for application management, security troubleshooting, and Declarative Device Management configurations, especially the `SigningID` and `TeamID` values used by the macOS 27 `com.apple.configuration.app.settings` declaration. It should also help administrators build application execution policies without manually assembling DDM JSON.
 
 ## Problem Statement
 
@@ -15,6 +15,7 @@ Although these tools provide the required information, the process has several l
 * Administrators must know the correct commands and arguments.
 * Relevant information is mixed into large command outputs.
 * Values must be manually copied into configuration profiles or DDM declarations.
+* Allow and deny policy intent can be difficult to review when declaration JSON is edited by hand.
 * Complex applications may contain multiple embedded helpers and executables.
 * Manual JSON creation increases the possibility of formatting errors.
 * Less experienced administrators may not understand how code-signing information maps to management payloads.
@@ -37,7 +38,9 @@ The application should remain understandable for administrators who are comforta
 
 ## Version 1.0 Direction
 
-Version 1.0 is intentionally focused on inspecting one macOS `.app` bundle selected through a native file picker and generating a DDM `DeniedBinaries` JSON entry containing `SigningID` and `TeamID`.
+Version 1.0 is intentionally focused on inspecting selected macOS `.app` bundles and providing a graphical DDM policy builder for `com.apple.configuration.app.settings`.
+
+The Version 1.0 policy builder should let administrators add applications, choose whether each application is allowed or denied, review the resulting policy, and generate complete JSON for manual use in an MDM platform such as Jamf Pro.
 
 The authoritative Version 1.0 scope is maintained in `README.md`.
 
@@ -61,7 +64,7 @@ These goals describe the longer-term product direction. They are not all include
 
 Planned future releases include:
 
-* **Version 1.1:** Complete DDM declaration generation, including declaration identifiers and server tokens
+* **Version 1.1:** Policy-builder refinements based on administrator feedback
 * **Version 1.2:** Drag-and-drop application selection and export improvements
 * **Version 2.0:** Standalone and recursively embedded binary inspection
 
@@ -79,6 +82,23 @@ Other potential post-Version 1.0 capabilities include:
 
 These features should only be added when they support the application's main purpose and do not make the interface unnecessarily complicated.
 
+## Future Jamf Pro Integration
+
+Post-Version 1.0, App Signing Inspector may integrate directly with Jamf Pro if Jamf provides a stable and fully documented public API for Blueprint and custom declaration management.
+
+Future Jamf Pro integration should support:
+
+* Authenticating securely to Jamf Pro
+* Retrieving available Blueprints
+* Selecting a target Blueprint
+* Creating or updating a custom declaration component
+* Uploading the generated `com.apple.configuration.app.settings` declaration directly to Jamf
+* Reading back the deployed declaration where supported
+* Avoiding storage of Jamf credentials in plaintext
+* Supporting Jamf API roles and least-privilege access
+
+Until the required Jamf APIs are available and verified, Version 1.0 will support JSON preview, copy, and export for manual use in Jamf.
+
 ## Design Principles
 
 ### Native
@@ -87,7 +107,7 @@ The application should look and behave like a modern macOS utility. It should us
 
 ### Simple
 
-A user should be able to open the application, select an app, and find its Signing ID and Team ID within a few seconds.
+A user should be able to open the application, select apps, assign allowed or denied actions, and understand the resulting DDM policy within a few seconds.
 
 Advanced information may be available, but the most important values should always be easy to locate.
 
@@ -95,7 +115,7 @@ Advanced information may be available, but the most important values should alwa
 
 The application must display values exactly as macOS reports them. It should not guess, alter, or substitute signing information.
 
-Generated JSON must be properly formatted and valid.
+Generated JSON must be properly formatted, valid, and deterministic.
 
 ### Safe
 
@@ -120,16 +140,17 @@ Features should solve real macOS administration problems. The project should avo
 The Version 1.0 primary workflow is:
 
 1. Open App Signing Inspector.
-2. Select a macOS `.app` bundle.
-3. Review the application summary.
-4. Locate the Signing ID and Team ID.
-5. Review security and architecture details when needed.
-6. Generate a DDM `DeniedBinaries` entry.
-7. Copy the JSON into the administrator's management platform.
+2. Open the DDM policy builder.
+3. Select one or more macOS `.app` bundles.
+4. Review the selected applications and their Signing ID and Team ID values.
+5. Mark each selected application as allowed or denied.
+6. Review warnings, duplicates, and missing required values.
+7. Preview the generated `com.apple.configuration.app.settings` JSON.
+8. Copy or export the JSON for manual use in the administrator's management platform.
 
 The primary workflow should require no Terminal usage.
 
-Post-Version 1.0 workflows may add drag-and-drop, export options, complete declaration generation, standalone executable inspection, and embedded binary inspection.
+Post-Version 1.0 workflows may add drag-and-drop, direct Jamf Pro upload, standalone executable inspection, and embedded binary inspection.
 
 ## Technical Direction
 
@@ -151,7 +172,7 @@ Native APIs should be preferred when they provide reliable results. Apple comman
 The project will be successful when:
 
 * An administrator can retrieve signing information without opening Terminal.
-* A valid DDM entry can be generated without manually editing JSON.
+* A valid DDM application execution declaration can be generated without manually editing JSON.
 * The tool correctly handles signed, unsigned, Apple-signed, and notarized applications.
 * The interface remains understandable to administrators who do not write code.
 * The application reduces the time and errors involved in creating binary-management configurations.
@@ -161,7 +182,7 @@ The project will be successful when:
 
 **Application Name:** App Signing Inspector
 
-**Repository Name:** `app-signing-inspector`
+**Repository Name:** `macos-app-signing-inspector`
 
 **Initial Version:** `0.1.0`
 

@@ -1,8 +1,10 @@
 # App Signing Inspector
 
-App Signing Inspector is a native macOS utility for inspecting application metadata, code-signing information, security attributes, and generating Declarative Device Management configuration data.
+App Signing Inspector is a native macOS utility for inspecting macOS `.app` signing details and building Declarative Device Management application execution declarations.
 
-Its Version 1.0 focus is generating the `SigningID` and `TeamID` values required for macOS 27 `com.apple.configuration.app.settings` binary-management declarations, then formatting those values as a DDM `DeniedBinaries` JSON entry.
+Its Version 1.0 focus is helping administrators collect Signing ID and Team ID values from multiple selected applications, assign each application an allowed or denied action, and use a graphical policy builder to generate a complete `com.apple.configuration.app.settings` declaration.
+
+Version 1.0 supports JSON preview, clipboard copy, and local `.json` export for manual use in Jamf or another MDM platform. Direct Jamf upload is planned only as a future capability and depends on Jamf providing a stable and fully documented Blueprint API.
 
 ## Project Status
 
@@ -12,7 +14,7 @@ Current version:
 
 `0.1.0`
 
-The initial development focus is project setup and the Version 1.0 application-inspection workflow.
+The initial development focus is project setup and the Version 1.0 application-inspection and DDM policy-builder workflow.
 
 ## Platform Support
 
@@ -31,39 +33,41 @@ DDM payload models should be reviewed against Apple's official documentation as 
 
 ## Version 1.0 Scope
 
-Version 1.0 is a focused minimum viable release for inspecting macOS `.app` bundles and generating a DDM `DeniedBinaries` entry.
+Version 1.0 is a focused minimum viable release for inspecting macOS `.app` bundles and building a complete DDM application execution declaration.
 
 Version 1.0 includes:
 
-* Selecting one macOS `.app` bundle through a native file picker
-* Displaying the application name and icon
-* Displaying bundle identifier
-* Displaying version and build number
-* Displaying bundle and executable paths
-* Displaying Signing ID
-* Displaying Team ID
-* Displaying signing authority or certificate chain
-* Displaying relevant code-signing flags
-* Detecting hardened runtime status
-* Displaying signature validity
-* Displaying signature timestamp where available
-* Identifying whether the application is Apple-signed
-* Displaying supported architectures
-* Assessing Gatekeeper or notarization status where reliably supported
-* Generating a valid `DeniedBinaries` JSON entry containing `SigningID` and `TeamID`
-* Copying the generated JSON
+* Opening a dedicated graphical DDM policy builder
+* Adding multiple macOS `.app` bundles through a native file picker
+* Automatically inspecting each selected application
+* Retrieving and storing each selected application's name, icon, Signing ID, and Team ID
+* Choosing whether each selected application is allowed or denied
+* Displaying selected applications in a clear editable list
+* Changing an application between allowed and denied
+* Removing an application from the policy
+* Detecting duplicate applications or duplicate signing entries
+* Warning when a selected application is unsigned or missing a Signing ID or Team ID
+* Generating appropriate `AllowedBinaries` and `DeniedBinaries` arrays
+* Generating a complete `com.apple.configuration.app.settings` declaration
+* Generating valid UUID values for the declaration `Identifier` and `ServerToken`
+* Previewing the generated JSON
+* Copying the complete JSON to the clipboard
+* Exporting the generated JSON to a local `.json` file
+* Validating required values before allowing export
+* Displaying a prominent warning when an allow-only policy could block management agents, security tools, background services, or other required software
 * Handling unsigned, malformed, and unsupported applications gracefully
+
+The interface must not automatically add management or security applications without the user's knowledge.
 
 Version 1.0 does not include:
 
 * Standalone executable inspection
 * Recursive embedded-binary inspection
-* Helper, framework, or nested app inspection
+* Helper, framework, or nested application inspection
 * Drag-and-drop selection
-* Batch inspection
+* Batch folder scanning
 * Inspection history
-* Complete DDM declaration generation
-* DDM declaration validation
+* Existing DDM declaration import or validation
 * Jamf API integration
 * Network-based Team ID or certificate verification
 
@@ -71,11 +75,13 @@ Version 1.0 does not include:
 
 Planned future releases include:
 
-* **Version 1.1:** Complete DDM declaration generation, including declaration identifiers and server tokens
+* **Version 1.1:** Policy-builder refinements based on administrator feedback
 * **Version 1.2:** Drag-and-drop application selection and export improvements
 * **Version 2.0:** Standalone and recursively embedded binary inspection
 
 These versions are planning guidance and may change based on development findings.
+
+Future Jamf Pro integration may allow direct upload of generated declarations when Jamf provides a stable and fully documented public API for Blueprint and custom declaration management. Until that API is available and verified, Version 1.0 supports JSON copy and export for manual use in Jamf.
 
 ## Privacy
 
