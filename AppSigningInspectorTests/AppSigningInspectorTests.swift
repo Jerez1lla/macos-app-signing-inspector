@@ -14,6 +14,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
     func testInitialStateHasNoSelectionOrError() {
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .cancelled),
+            metadataInspector: StubMetadataInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -27,6 +28,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let appURL = try makeApplicationBundle(named: "Example")
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .selected(appURL)),
+            metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "Example")),
             iconLoader: StubIconLoader()
         )
 
@@ -47,6 +49,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         ])
         let viewModel = ApplicationBrowserViewModel(
             picker: picker,
+            metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "Existing")),
             iconLoader: StubIconLoader()
         )
 
@@ -63,6 +66,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         FileManager.default.createFile(atPath: invalidURL.path, contents: Data())
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .selected(invalidURL)),
+            metadataInspector: StubMetadataInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -80,6 +84,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let missingURL = temporaryDirectory().appendingPathComponent("Missing.app", isDirectory: true)
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .selected(missingURL)),
+            metadataInspector: StubMetadataInspector(),
             iconLoader: StubIconLoader()
         )
 
@@ -97,6 +102,7 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         let appURL = try makeApplicationBundle(named: "NoIcon")
         let viewModel = ApplicationBrowserViewModel(
             picker: StubApplicationPicker(result: .selected(appURL)),
+            metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "NoIcon")),
             iconLoader: StubIconLoader(error: ApplicationBrowserError.iconUnavailable(appURL))
         )
 
@@ -120,6 +126,10 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         ])
         let viewModel = ApplicationBrowserViewModel(
             picker: picker,
+            metadataInspector: QueueMetadataInspector(metadataResults: [
+                metadata(for: invalidURL, displayName: "Invalid"),
+                metadata(for: appURL, displayName: "Valid")
+            ]),
             iconLoader: StubIconLoader()
         )
 
@@ -131,9 +141,240 @@ final class ApplicationBrowserViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.selectedApplication?.url, appURL)
     }
 
+    @MainActor
+    func testMetadataInspectionFailureShowsError() async throws {
+        let appURL = try makeApplicationBundle(named: "Broken")
+        let viewModel = ApplicationBrowserViewModel(
+            picker: StubApplicationPicker(result: .selected(appURL)),
+            metadataInspector: StubMetadataInspector(error: ApplicationMetadataError.infoPlistUnreadable(appURL)),
+            iconLoader: StubIconLoader()
+        )
+
+        await viewModel.selectApplication()
+
+        XCTAssertNil(viewModel.selectedApplication)
+        XCTAssertEqual(
+            viewModel.errorMessage,
+            "The selected application's Info.plist could not be read. Choose a different app."
+        )
+    }
+
+    @MainActor
+    func testSelectingSecondApplicationReplacesPreviousMetadata() async throws {
+        let firstURL = try makeApplicationBundle(named: "First")
+        let secondURL = try makeApplicationBundle(named: "Second")
+        let picker = QueueApplicationPicker(results: [
+            .selected(firstURL),
+            .selected(secondURL)
+        ])
+        let viewModel = ApplicationBrowserViewModel(
+            picker: picker,
+            metadataInspector: QueueMetadataInspector(metadataResults: [
+                metadata(for: firstURL, displayName: "First"),
+                metadata(for: secondURL, displayName: "Second")
+            ]),
+            iconLoader: StubIconLoader()
+        )
+
+        await viewModel.selectApplication()
+        await viewModel.selectApplication()
+
+        XCTAssertEqual(viewModel.selectedApplication?.url, secondURL)
+        XCTAssertEqual(viewModel.selectedApplication?.name, "Second")
+        XCTAssertNil(viewModel.errorMessage)
+    }
+
+    @MainActor
+    func testCopyActionsUseAvailableMetadataValues() async throws {
+        let appURL = try makeApplicationBundle(named: "Copyable")
+        let clipboard = StubClipboardWriter()
+        let viewModel = ApplicationBrowserViewModel(
+            picker: StubApplicationPicker(result: .selected(appURL)),
+            metadataInspector: StubMetadataInspector(metadata: metadata(for: appURL, displayName: "Copyable")),
+            iconLoader: StubIconLoader(),
+            clipboardWriter: clipboard
+        )
+
+        await viewModel.selectApplication()
+        viewModel.copyBundleIdentifier()
+        viewModel.copyBundlePath()
+        viewModel.copyExecutablePath()
+
+        XCTAssertEqual(clipboard.copiedValues, [
+            "com.example.Copyable",
+            appURL.path,
+            appURL.appendingPathComponent("Contents/MacOS/Copyable").path
+        ])
+    }
+
     private func makeApplicationBundle(named name: String) throws -> URL {
         let appURL = temporaryDirectory().appendingPathComponent("\(name).app", isDirectory: true)
         try FileManager.default.createDirectory(at: appURL, withIntermediateDirectories: true)
+        return appURL
+    }
+
+    private func temporaryDirectory() -> URL {
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent(UUID().uuidString, isDirectory: true)
+        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        return directory
+    }
+
+    private func metadata(for appURL: URL, displayName: String) -> ApplicationMetadata {
+        ApplicationMetadata(
+            applicationURL: appURL,
+            displayName: displayName,
+            bundleIdentifier: "com.example.\(displayName)",
+            shortVersion: "1.0",
+            buildNumber: "100",
+            bundlePath: appURL.path,
+            executableName: displayName,
+            executablePath: appURL.appendingPathComponent("Contents/MacOS/\(displayName)").path,
+            executableExists: true,
+            diagnostics: []
+        )
+    }
+}
+
+final class ApplicationMetadataInspectorTests: XCTestCase {
+    func testDisplayNameUsesBundleDisplayNameFirst() {
+        let appURL = applicationURL(named: "Filename")
+
+        let metadata = ApplicationMetadataInspector.metadata(
+            applicationURL: appURL,
+            infoDictionary: [
+                "CFBundleDisplayName": "Display",
+                "CFBundleName": "Bundle"
+            ]
+        )
+
+        XCTAssertEqual(metadata.displayName, "Display")
+    }
+
+    func testDisplayNameFallsBackToBundleName() {
+        let appURL = applicationURL(named: "Filename")
+
+        let metadata = ApplicationMetadataInspector.metadata(
+            applicationURL: appURL,
+            infoDictionary: ["CFBundleName": "Bundle"]
+        )
+
+        XCTAssertEqual(metadata.displayName, "Bundle")
+    }
+
+    func testDisplayNameFallsBackToAppFilename() {
+        let appURL = applicationURL(named: "Filename")
+
+        let metadata = ApplicationMetadataInspector.metadata(
+            applicationURL: appURL,
+            infoDictionary: [:]
+        )
+
+        XCTAssertEqual(metadata.displayName, "Filename")
+    }
+
+    func testParsesBundleIdentifierVersionBuildAndExecutableName() throws {
+        let appURL = try makeApplicationBundle(named: "Example")
+        _ = FileManager.default.createFile(
+            atPath: appURL.appendingPathComponent("Contents/MacOS/Runner").path,
+            contents: Data()
+        )
+
+        let metadata = ApplicationMetadataInspector.metadata(
+            applicationURL: appURL,
+            infoDictionary: [
+                "CFBundleIdentifier": "com.example.app",
+                "CFBundleShortVersionString": "2.3",
+                "CFBundleVersion": "45",
+                "CFBundleExecutable": "Runner"
+            ]
+        )
+
+        XCTAssertEqual(metadata.bundleIdentifier, "com.example.app")
+        XCTAssertEqual(metadata.shortVersion, "2.3")
+        XCTAssertEqual(metadata.buildNumber, "45")
+        XCTAssertEqual(metadata.executableName, "Runner")
+    }
+
+    func testConstructsExecutablePathWhenExecutableExists() throws {
+        let appURL = try makeApplicationBundle(named: "Executable")
+        let executableURL = appURL.appendingPathComponent("Contents/MacOS/ExecutableRunner")
+        _ = FileManager.default.createFile(atPath: executableURL.path, contents: Data())
+
+        let metadata = ApplicationMetadataInspector.metadata(
+            applicationURL: appURL,
+            infoDictionary: ["CFBundleExecutable": "ExecutableRunner"]
+        )
+
+        XCTAssertEqual(metadata.executablePath, executableURL.path)
+        XCTAssertTrue(metadata.executableExists)
+    }
+
+    func testMissingExecutableKeyMarksExecutableUnavailable() {
+        let appURL = applicationURL(named: "NoExecutable")
+
+        let metadata = ApplicationMetadataInspector.metadata(
+            applicationURL: appURL,
+            infoDictionary: [:]
+        )
+
+        XCTAssertNil(metadata.executableName)
+        XCTAssertNil(metadata.executablePath)
+        XCTAssertFalse(metadata.executableExists)
+        XCTAssertTrue(metadata.diagnostics.contains(.missingExecutableName))
+    }
+
+    func testExecutableFileNotFoundMarksExecutablePathUnavailable() {
+        let appURL = applicationURL(named: "MissingExecutable")
+
+        let metadata = ApplicationMetadataInspector.metadata(
+            applicationURL: appURL,
+            infoDictionary: ["CFBundleExecutable": "MissingRunner"]
+        )
+
+        XCTAssertEqual(metadata.executableName, "MissingRunner")
+        XCTAssertNil(metadata.executablePath)
+        XCTAssertFalse(metadata.executableExists)
+        XCTAssertTrue(metadata.diagnostics.contains(.executableNotFound("MissingRunner")))
+    }
+
+    func testMissingOptionalMetadataIsUnavailableWithDiagnostics() {
+        let appURL = applicationURL(named: "Sparse")
+
+        let metadata = ApplicationMetadataInspector.metadata(
+            applicationURL: appURL,
+            infoDictionary: [:]
+        )
+
+        XCTAssertNil(metadata.bundleIdentifier)
+        XCTAssertNil(metadata.shortVersion)
+        XCTAssertNil(metadata.buildNumber)
+        XCTAssertEqual(metadata.bundleIdentifierDisplayValue, "Unavailable")
+        XCTAssertEqual(metadata.versionDisplayValue, "Unavailable")
+        XCTAssertEqual(metadata.buildDisplayValue, "Unavailable")
+        XCTAssertTrue(metadata.diagnostics.contains(.missingBundleIdentifier))
+        XCTAssertTrue(metadata.diagnostics.contains(.missingShortVersion))
+        XCTAssertTrue(metadata.diagnostics.contains(.missingBuildNumber))
+    }
+
+    func testInvalidBundleThrowsMetadataError() throws {
+        let inspector = ApplicationMetadataInspector()
+        let invalidURL = temporaryDirectory().appendingPathComponent("NotAnApp.txt")
+        FileManager.default.createFile(atPath: invalidURL.path, contents: Data())
+
+        XCTAssertThrowsError(try inspector.metadata(for: invalidURL)) { error in
+            XCTAssertEqual(error as? ApplicationMetadataError, .invalidBundle(invalidURL))
+        }
+    }
+
+    private func applicationURL(named name: String) -> URL {
+        FileManager.default.temporaryDirectory.appendingPathComponent("\(name).app", isDirectory: true)
+    }
+
+    private func makeApplicationBundle(named name: String) throws -> URL {
+        let appURL = temporaryDirectory().appendingPathComponent("\(name).app", isDirectory: true)
+        let executableDirectory = appURL.appendingPathComponent("Contents/MacOS", isDirectory: true)
+        try FileManager.default.createDirectory(at: executableDirectory, withIntermediateDirectories: true)
         return appURL
     }
 
@@ -176,5 +417,49 @@ private struct StubIconLoader: ApplicationIconLoading {
         }
 
         return NSImage(size: NSSize(width: 32, height: 32))
+    }
+}
+
+private struct StubMetadataInspector: ApplicationMetadataInspecting {
+    var metadata: ApplicationMetadata?
+    var error: Error?
+
+    func metadata(for applicationURL: URL) throws -> ApplicationMetadata {
+        if let error {
+            throw error
+        }
+
+        return metadata ?? ApplicationMetadata(
+            applicationURL: applicationURL,
+            displayName: applicationURL.deletingPathExtension().lastPathComponent,
+            bundleIdentifier: nil,
+            shortVersion: nil,
+            buildNumber: nil,
+            bundlePath: applicationURL.path,
+            executableName: nil,
+            executablePath: nil,
+            executableExists: false,
+            diagnostics: []
+        )
+    }
+}
+
+private final class QueueMetadataInspector: ApplicationMetadataInspecting {
+    private var metadataResults: [ApplicationMetadata]
+
+    init(metadataResults: [ApplicationMetadata]) {
+        self.metadataResults = metadataResults
+    }
+
+    func metadata(for applicationURL: URL) throws -> ApplicationMetadata {
+        metadataResults.removeFirst()
+    }
+}
+
+private final class StubClipboardWriter: ClipboardWriting {
+    private(set) var copiedValues: [String] = []
+
+    func copy(_ value: String) {
+        copiedValues.append(value)
     }
 }

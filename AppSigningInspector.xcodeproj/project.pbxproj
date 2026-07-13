@@ -16,6 +16,11 @@
 		111111111111111111111107 /* ApplicationIconLoading.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111009 /* ApplicationIconLoading.swift */; };
 		111111111111111111111108 /* ApplicationPickerService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111010 /* ApplicationPickerService.swift */; };
 		111111111111111111111109 /* ApplicationBrowserViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111011 /* ApplicationBrowserViewModel.swift */; };
+		11111111111111111111110A /* ApplicationMetadata.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111012 /* ApplicationMetadata.swift */; };
+		11111111111111111111110B /* ApplicationMetadataInspecting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111013 /* ApplicationMetadataInspecting.swift */; };
+		11111111111111111111110C /* ClipboardWriting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111014 /* ClipboardWriting.swift */; };
+		11111111111111111111110D /* ApplicationMetadataInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111015 /* ApplicationMetadataInspector.swift */; };
+		11111111111111111111110E /* PasteboardClipboardWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111016 /* PasteboardClipboardWriter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +45,11 @@
 		111111111111111111111009 /* ApplicationIconLoading.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationIconLoading.swift; sourceTree = "<group>"; };
 		111111111111111111111010 /* ApplicationPickerService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationPickerService.swift; sourceTree = "<group>"; };
 		111111111111111111111011 /* ApplicationBrowserViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationBrowserViewModel.swift; sourceTree = "<group>"; };
+		111111111111111111111012 /* ApplicationMetadata.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationMetadata.swift; sourceTree = "<group>"; };
+		111111111111111111111013 /* ApplicationMetadataInspecting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationMetadataInspecting.swift; sourceTree = "<group>"; };
+		111111111111111111111014 /* ClipboardWriting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardWriting.swift; sourceTree = "<group>"; };
+		111111111111111111111015 /* ApplicationMetadataInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationMetadataInspector.swift; sourceTree = "<group>"; };
+		111111111111111111111016 /* PasteboardClipboardWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardClipboardWriter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +106,7 @@
 		111111111111111111111610 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				111111111111111111111012 /* ApplicationMetadata.swift */,
 				111111111111111111111007 /* SelectedApplication.swift */,
 			);
 			path = Models;
@@ -120,7 +131,9 @@
 		111111111111111111111613 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				111111111111111111111015 /* ApplicationMetadataInspector.swift */,
 				111111111111111111111010 /* ApplicationPickerService.swift */,
+				111111111111111111111016 /* PasteboardClipboardWriter.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -129,7 +142,9 @@
 			isa = PBXGroup;
 			children = (
 				111111111111111111111009 /* ApplicationIconLoading.swift */,
+				111111111111111111111013 /* ApplicationMetadataInspecting.swift */,
 				111111111111111111111008 /* ApplicationPicking.swift */,
+				111111111111111111111014 /* ClipboardWriting.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -267,9 +282,14 @@
 				111111111111111111111101 /* AppSigningInspectorApp.swift in Sources */,
 				111111111111111111111109 /* ApplicationBrowserViewModel.swift in Sources */,
 				111111111111111111111107 /* ApplicationIconLoading.swift in Sources */,
+				11111111111111111111110A /* ApplicationMetadata.swift in Sources */,
+				11111111111111111111110B /* ApplicationMetadataInspecting.swift in Sources */,
 				111111111111111111111106 /* ApplicationPicking.swift in Sources */,
 				111111111111111111111108 /* ApplicationPickerService.swift in Sources */,
+				11111111111111111111110D /* ApplicationMetadataInspector.swift in Sources */,
+				11111111111111111111110C /* ClipboardWriting.swift in Sources */,
 				111111111111111111111102 /* ContentView.swift in Sources */,
+				11111111111111111111110E /* PasteboardClipboardWriter.swift in Sources */,
 				111111111111111111111105 /* SelectedApplication.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
