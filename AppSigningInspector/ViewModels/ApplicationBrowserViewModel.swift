@@ -5,18 +5,25 @@ import Foundation
 final class ApplicationBrowserViewModel: ObservableObject {
     @Published private(set) var selectedApplication: SelectedApplication?
     @Published private(set) var errorMessage: String?
+    @Published private(set) var isLoading = false
 
     private let picker: ApplicationPicking
+    private let metadataInspector: ApplicationMetadataInspecting
     private let iconLoader: ApplicationIconLoading
+    private let clipboardWriter: ClipboardWriting
     private let fileManager: FileManager
 
     init(
         picker: ApplicationPicking = ApplicationPickerService(),
+        metadataInspector: ApplicationMetadataInspecting = ApplicationMetadataInspector(),
         iconLoader: ApplicationIconLoading = WorkspaceApplicationIconLoader(),
+        clipboardWriter: ClipboardWriting = PasteboardClipboardWriter(),
         fileManager: FileManager = .default
     ) {
         self.picker = picker
+        self.metadataInspector = metadataInspector
         self.iconLoader = iconLoader
+        self.clipboardWriter = clipboardWriter
         self.fileManager = fileManager
     }
 
@@ -31,14 +38,35 @@ final class ApplicationBrowserViewModel: ObservableObject {
             case .cancelled:
                 return
             case .selected(let url):
+                isLoading = true
+                defer {
+                    isLoading = false
+                }
                 selectedApplication = try application(from: url)
                 errorMessage = nil
             }
         } catch let error as ApplicationBrowserError {
             errorMessage = error.userMessage
+            isLoading = false
+        } catch let error as ApplicationMetadataError {
+            errorMessage = error.userMessage
+            isLoading = false
         } catch {
             errorMessage = "Unable to select the application. Try choosing a different .app bundle."
+            isLoading = false
         }
+    }
+
+    func copyBundleIdentifier() {
+        copy(selectedApplication?.metadata.bundleIdentifier)
+    }
+
+    func copyBundlePath() {
+        copy(selectedApplication?.metadata.bundlePath)
+    }
+
+    func copyExecutablePath() {
+        copy(selectedApplication?.metadata.executablePath)
     }
 
     func application(from url: URL) throws -> SelectedApplication {
@@ -59,10 +87,18 @@ final class ApplicationBrowserViewModel: ObservableObject {
             throw ApplicationBrowserError.applicationNotReadable(url)
         }
 
+        let metadata = try metadataInspector.metadata(for: url)
         let icon = try iconLoader.icon(for: url)
-        let name = url.deletingPathExtension().lastPathComponent
 
-        return SelectedApplication(url: url, name: name, icon: icon)
+        return SelectedApplication(metadata: metadata, icon: icon)
+    }
+
+    private func copy(_ value: String?) {
+        guard let value, !value.isEmpty else {
+            return
+        }
+
+        clipboardWriter.copy(value)
     }
 }
 
