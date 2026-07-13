@@ -21,6 +21,16 @@
 		11111111111111111111110C /* ClipboardWriting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111014 /* ClipboardWriting.swift */; };
 		11111111111111111111110D /* ApplicationMetadataInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111015 /* ApplicationMetadataInspector.swift */; };
 		11111111111111111111110E /* PasteboardClipboardWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111016 /* PasteboardClipboardWriter.swift */; };
+		11111111111111111111110F /* ProcessResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111017 /* ProcessResult.swift */; };
+		111111111111111111111110 /* CodeSignatureInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111018 /* CodeSignatureInfo.swift */; };
+		111111111111111111111111 /* ProcessRunning.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111019 /* ProcessRunning.swift */; };
+		111111111111111111111112 /* CodeSignatureInspecting.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111020 /* CodeSignatureInspecting.swift */; };
+		111111111111111111111113 /* CodeSignatureOutputParsing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111021 /* CodeSignatureOutputParsing.swift */; };
+		111111111111111111111114 /* FoundationProcessRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111022 /* FoundationProcessRunner.swift */; };
+		111111111111111111111115 /* CodeSignatureOutputParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111023 /* CodeSignatureOutputParser.swift */; };
+		111111111111111111111116 /* ApplicationCodeSignatureInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111024 /* ApplicationCodeSignatureInspector.swift */; };
+		111111111111111111111117 /* CodeSignatureOutputParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111025 /* CodeSignatureOutputParserTests.swift */; };
+		111111111111111111111118 /* ApplicationCodeSignatureViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111026 /* ApplicationCodeSignatureViewModelTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +60,16 @@
 		111111111111111111111014 /* ClipboardWriting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardWriting.swift; sourceTree = "<group>"; };
 		111111111111111111111015 /* ApplicationMetadataInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationMetadataInspector.swift; sourceTree = "<group>"; };
 		111111111111111111111016 /* PasteboardClipboardWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PasteboardClipboardWriter.swift; sourceTree = "<group>"; };
+		111111111111111111111017 /* ProcessResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessResult.swift; sourceTree = "<group>"; };
+		111111111111111111111018 /* CodeSignatureInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSignatureInfo.swift; sourceTree = "<group>"; };
+		111111111111111111111019 /* ProcessRunning.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessRunning.swift; sourceTree = "<group>"; };
+		111111111111111111111020 /* CodeSignatureInspecting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSignatureInspecting.swift; sourceTree = "<group>"; };
+		111111111111111111111021 /* CodeSignatureOutputParsing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSignatureOutputParsing.swift; sourceTree = "<group>"; };
+		111111111111111111111022 /* FoundationProcessRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoundationProcessRunner.swift; sourceTree = "<group>"; };
+		111111111111111111111023 /* CodeSignatureOutputParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSignatureOutputParser.swift; sourceTree = "<group>"; };
+		111111111111111111111024 /* ApplicationCodeSignatureInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationCodeSignatureInspector.swift; sourceTree = "<group>"; };
+		111111111111111111111025 /* CodeSignatureOutputParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeSignatureOutputParserTests.swift; sourceTree = "<group>"; };
+		111111111111111111111026 /* ApplicationCodeSignatureViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationCodeSignatureViewModelTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -107,6 +127,8 @@
 			isa = PBXGroup;
 			children = (
 				111111111111111111111012 /* ApplicationMetadata.swift */,
+				111111111111111111111018 /* CodeSignatureInfo.swift */,
+				111111111111111111111017 /* ProcessResult.swift */,
 				111111111111111111111007 /* SelectedApplication.swift */,
 			);
 			path = Models;
@@ -131,8 +153,11 @@
 		111111111111111111111613 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				111111111111111111111024 /* ApplicationCodeSignatureInspector.swift */,
 				111111111111111111111015 /* ApplicationMetadataInspector.swift */,
 				111111111111111111111010 /* ApplicationPickerService.swift */,
+				111111111111111111111023 /* CodeSignatureOutputParser.swift */,
+				111111111111111111111022 /* FoundationProcessRunner.swift */,
 				111111111111111111111016 /* PasteboardClipboardWriter.swift */,
 			);
 			path = Services;
@@ -145,6 +170,9 @@
 				111111111111111111111013 /* ApplicationMetadataInspecting.swift */,
 				111111111111111111111008 /* ApplicationPicking.swift */,
 				111111111111111111111014 /* ClipboardWriting.swift */,
+				111111111111111111111020 /* CodeSignatureInspecting.swift */,
+				111111111111111111111021 /* CodeSignatureOutputParsing.swift */,
+				111111111111111111111019 /* ProcessRunning.swift */,
 			);
 			path = Protocols;
 			sourceTree = "<group>";
@@ -168,6 +196,8 @@
 			isa = PBXGroup;
 			children = (
 				111111111111111111111004 /* AppSigningInspectorTests.swift */,
+				111111111111111111111026 /* ApplicationCodeSignatureViewModelTests.swift */,
+				111111111111111111111025 /* CodeSignatureOutputParserTests.swift */,
 				111111111111111111111701 /* Fixtures */,
 			);
 			path = AppSigningInspectorTests;
@@ -279,6 +309,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				111111111111111111111116 /* ApplicationCodeSignatureInspector.swift in Sources */,
 				111111111111111111111101 /* AppSigningInspectorApp.swift in Sources */,
 				111111111111111111111109 /* ApplicationBrowserViewModel.swift in Sources */,
 				111111111111111111111107 /* ApplicationIconLoading.swift in Sources */,
@@ -288,8 +319,15 @@
 				111111111111111111111108 /* ApplicationPickerService.swift in Sources */,
 				11111111111111111111110D /* ApplicationMetadataInspector.swift in Sources */,
 				11111111111111111111110C /* ClipboardWriting.swift in Sources */,
+				111111111111111111111110 /* CodeSignatureInfo.swift in Sources */,
+				111111111111111111111112 /* CodeSignatureInspecting.swift in Sources */,
+				111111111111111111111115 /* CodeSignatureOutputParser.swift in Sources */,
+				111111111111111111111113 /* CodeSignatureOutputParsing.swift in Sources */,
 				111111111111111111111102 /* ContentView.swift in Sources */,
+				111111111111111111111114 /* FoundationProcessRunner.swift in Sources */,
 				11111111111111111111110E /* PasteboardClipboardWriter.swift in Sources */,
+				11111111111111111111110F /* ProcessResult.swift in Sources */,
+				111111111111111111111111 /* ProcessRunning.swift in Sources */,
 				111111111111111111111105 /* SelectedApplication.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -299,6 +337,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				111111111111111111111104 /* AppSigningInspectorTests.swift in Sources */,
+				111111111111111111111118 /* ApplicationCodeSignatureViewModelTests.swift in Sources */,
+				111111111111111111111117 /* CodeSignatureOutputParserTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
