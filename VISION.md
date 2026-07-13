@@ -38,9 +38,11 @@ The application should remain understandable for administrators who are comforta
 
 ## Version 1.0 Direction
 
-Version 1.0 is intentionally focused on inspecting selected macOS `.app` bundles and providing a graphical DDM policy builder for `com.apple.configuration.app.settings`.
+Version 1.0 is intentionally organized around two separate primary workspaces: **Inspector** and **Policy Builder**.
 
-The Version 1.0 policy builder should let administrators add applications, choose whether each application is allowed or denied, review the resulting policy, and generate complete JSON for manual use in an MDM platform such as Jamf Pro.
+The Inspector should remain a focused, independent workflow for examining one macOS `.app` bundle. The Policy Builder should let administrators combine specific-application, developer Team ID, Apple-binary, path-restricted, and managed-application options supported by the documented macOS 27 schema, review the resulting policy, and generate complete JSON for manual use in an MDM platform such as Jamf Pro.
+
+A compact native macOS sidebar should make both workspaces directly available, with Inspector selected by default. Workspace state should remain separate so inspecting an application never requires beginning a policy, and policy editing does not replace or crowd the Inspector.
 
 The authoritative Version 1.0 scope is maintained in `README.md`.
 
@@ -137,18 +139,12 @@ Features should solve real macOS administration problems. The project should avo
 
 ## User Experience Goal
 
-The Version 1.0 primary workflow is:
+Version 1.0 should open to the Inspector and present two clear sidebar destinations:
 
-1. Open App Signing Inspector.
-2. Open the DDM policy builder.
-3. Select one or more macOS `.app` bundles.
-4. Review the selected applications and their Signing ID and Team ID values.
-5. Mark each selected application as allowed or denied.
-6. Review warnings, duplicates, and missing required values.
-7. Preview the generated `com.apple.configuration.app.settings` JSON.
-8. Copy or export the JSON for manual use in the administrator's management platform.
+* **Inspector:** Select one macOS `.app` bundle, review its inspection results, and copy individual values.
+* **Policy Builder:** Add multiple applications, assign allow or deny actions, review validation and safety warnings, and preview, copy, or export the generated `com.apple.configuration.app.settings` JSON.
 
-The primary workflow should require no Terminal usage.
+Both workflows should require no Terminal usage. Switching between them should feel native, preserve valid state, and avoid mixing single-application inspection state with multi-application policy state.
 
 Post-Version 1.0 workflows may add drag-and-drop, direct Jamf Pro upload, standalone executable inspection, and embedded binary inspection.
 
@@ -160,6 +156,8 @@ The application will be:
 * Built with SwiftUI
 * Designed for macOS
 * Structured using a clear separation between views, models, and services
+* Organized as separate Inspector and Policy Builder workspaces within a native `NavigationSplitView`
+* Designed with independent workspace state and shared inspection services
 * Built primarily with Apple-provided frameworks
 * Free of third-party dependencies unless there is a strong documented reason
 * Compatible with light and dark mode

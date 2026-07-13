@@ -17,6 +17,9 @@ The product scope for Version 1.0 is defined in `README.md`. Long-term product d
 * Prefer dependency injection where it improves testing and maintainability.
 * Avoid unnecessary abstraction or architectural complexity.
 * Do not use third-party libraries unless they are reviewed and approved.
+* Keep Inspector state and Policy Builder state in separate view models or equivalent focused state owners.
+* Reuse metadata, signing, security, process-execution, and clipboard services across workspaces rather than duplicating platform logic.
+* Do not introduce a single oversized view model that owns both Inspector and Policy Builder state.
 
 ## Project Structure
 
@@ -52,6 +55,13 @@ The exact structure may evolve as the project grows, but files should be grouped
 * Follow Apple's macOS Human Interface Guidelines.
 * Use native macOS controls and interaction patterns.
 * Use SwiftUI and SF Symbols where appropriate.
+* Use `NavigationSplitView` as the primary navigation container for the Version 1.0 Inspector and Policy Builder workspaces.
+* Use a compact native sidebar with **Inspector** (`doc.text.magnifyingglass`) and **Policy Builder** (`list.bullet.rectangle`) destinations.
+* Select Inspector by default when the application opens.
+* Keep the sidebar visually unobtrusive, preserve standard macOS split-view behavior, and keep the current minimum window size usable.
+* Preserve valid workspace state when switching destinations; do not merge Inspector and Policy Builder selection or presentation state.
+* Do not replace the required sidebar with a modal, segmented control, tab view, temporary screen-replacement button, or custom navigation pattern.
+* Leave room for future destinations without implementing empty or speculative destinations.
 * Support light and dark appearance.
 * Support keyboard navigation where practical.
 * Display important signing values clearly and make them easy to copy.
@@ -174,11 +184,16 @@ Prefer Apple frameworks and small internal implementations when reasonable.
 * Format exported JSON for readability.
 * Keep generated JSON deterministic so equivalent policy state produces equivalent JSON except for intentionally generated UUID values.
 * Validate required fields before generating payload content.
+* Validate required fields according to typed rule scope; do not require `SigningID` for documented Team-ID-only allow rules.
+* Omit optional payload keys when they are not selected or required; do not emit `null` or explicit `false` values merely for convenience.
+* Preserve `PathPrefix` capitalization and spaces exactly, require an absolute path, and do not use a shell to process it.
 * Validate required values before allowing local JSON export.
 * Export JSON only to user-selected local file destinations.
 * Clearly label payload functionality that is specific to macOS 27.
 * Do not imply that generating valid JSON guarantees successful enforcement by an MDM server or device.
 * Do not invent undocumented payload fields or behaviors.
+* Support only documented special tokens. Do not generate company-name wildcard tokens; the current AppleSeed-based exception is the exact `*APPLE*` Team ID token.
+* Treat macOS 27 beta schema behavior conservatively and document unverified rule shapes rather than inferring symmetry between allowed and denied rules.
 
 ## Future Integration Boundaries
 

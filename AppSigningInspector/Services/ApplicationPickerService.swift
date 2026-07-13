@@ -2,14 +2,51 @@ import AppKit
 import Foundation
 import UniformTypeIdentifiers
 
-struct ApplicationPickerService: ApplicationPicking {
+struct ApplicationPickerService: ApplicationPicking, PolicyApplicationPicking {
     @MainActor
     func selectApplication() async throws -> ApplicationPickerResult {
+        let panel = applicationPanel(
+            title: "Select Application",
+            prompt: "Select Application",
+            message: "Choose a macOS application bundle.",
+            allowsMultipleSelection: false
+        )
+
+        let response = panel.runModal()
+        guard response == .OK, let selectedURL = panel.url else {
+            return .cancelled
+        }
+
+        return .selected(selectedURL)
+    }
+
+    @MainActor
+    func selectApplications() async throws -> PolicyApplicationPickerResult {
+        let panel = applicationPanel(
+            title: "Add Applications",
+            prompt: "Add Applications",
+            message: "Choose one or more macOS application bundles.",
+            allowsMultipleSelection: true
+        )
+
+        guard panel.runModal() == .OK, !panel.urls.isEmpty else {
+            return .cancelled
+        }
+        return .selected(panel.urls)
+    }
+
+    @MainActor
+    private func applicationPanel(
+        title: String,
+        prompt: String,
+        message: String,
+        allowsMultipleSelection: Bool
+    ) -> NSOpenPanel {
         let panel = NSOpenPanel()
-        panel.title = "Select Application"
-        panel.prompt = "Select Application"
-        panel.message = "Choose a macOS application bundle."
-        panel.allowsMultipleSelection = false
+        panel.title = title
+        panel.prompt = prompt
+        panel.message = message
+        panel.allowsMultipleSelection = allowsMultipleSelection
         panel.canChooseFiles = true
         panel.canChooseDirectories = true
         panel.canCreateDirectories = false
@@ -20,13 +57,7 @@ struct ApplicationPickerService: ApplicationPicking {
         if FileManager.default.fileExists(atPath: applicationsURL.path) {
             panel.directoryURL = applicationsURL
         }
-
-        let response = panel.runModal()
-        guard response == .OK, let selectedURL = panel.url else {
-            return .cancelled
-        }
-
-        return .selected(selectedURL)
+        return panel
     }
 }
 
