@@ -16,6 +16,8 @@ Current version:
 
 The initial development focus is the Version 1.0 application-inspection and DDM policy-builder workflow.
 
+The current inspection workflow displays application metadata and code-signature details, including Signing ID, Team ID, signing authorities, signature validity, code-signing flags, hardened runtime status, and timestamp where available.
+
 ## Platform Support
 
 The application itself is intended to support the earliest practical macOS version permitted by the APIs and tools it requires.
@@ -146,7 +148,7 @@ The initial project uses manual local code signing for development. If Xcode pro
 2. Select the App Signing Inspector scheme.
 3. Choose **Product > Run**, or press `Command-R`.
 4. Use **Select Application** to choose one macOS `.app` bundle.
-5. Confirm the selected application's icon, name, bundle identifier, version, build number, bundle path, executable name, and executable path are displayed where available.
+5. Confirm the selected application's metadata and code-signature details are displayed where available.
 
 ## Running Tests
 
@@ -205,6 +207,8 @@ Potential tools include:
 * `file`
 
 Shell and platform interactions must be isolated behind services. SwiftUI views must not execute these tools directly.
+
+Code-signature inspection launches `/usr/bin/codesign` directly through a process-running service. Process execution, output parsing, and view-model presentation are separate so command output can be tested without invoking live system tools.
 
 ## Development Guidelines
 

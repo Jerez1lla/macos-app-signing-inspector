@@ -18,7 +18,10 @@ struct ContentView: View {
             Divider()
 
             if let selectedApplication = viewModel.selectedApplication {
-                selectedApplicationView(selectedApplication)
+                ScrollView {
+                    selectedApplicationView(selectedApplication)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
             } else if viewModel.isLoading {
                 loadingStateView
             } else {
@@ -37,12 +40,13 @@ struct ContentView: View {
                 }
             }
             .keyboardShortcut(.defaultAction)
+            .disabled(viewModel.isLoading || viewModel.isInspectingCodeSignature)
             .accessibilityLabel(viewModel.hasSelectedApplication ? "Choose a different application" : "Select an application")
 
             Spacer()
         }
         .padding(32)
-        .frame(minWidth: 520, minHeight: 320)
+        .frame(minWidth: 620, minHeight: 560)
     }
 
     private var emptyStateView: some View {
@@ -70,7 +74,16 @@ struct ContentView: View {
             application: application,
             copyBundleIdentifier: viewModel.copyBundleIdentifier,
             copyBundlePath: viewModel.copyBundlePath,
-            copyExecutablePath: viewModel.copyExecutablePath
+            copyExecutablePath: viewModel.copyExecutablePath,
+            codeSignatureInfo: viewModel.codeSignatureInfo,
+            isInspectingCodeSignature: viewModel.isInspectingCodeSignature,
+            signatureErrorMessage: viewModel.signatureErrorMessage,
+            signatureErrorDetails: viewModel.signatureErrorDetails,
+            copySigningIdentifier: viewModel.copySigningIdentifier,
+            copyTeamIdentifier: viewModel.copyTeamIdentifier,
+            copySigningAuthority: viewModel.copySigningAuthority,
+            copyRawSigningDiagnostics: viewModel.copyRawSigningDiagnostics,
+            copySignatureErrorDetails: viewModel.copySignatureErrorDetails
         )
     }
 }
@@ -80,6 +93,15 @@ private struct SelectedApplicationDetailsView: View {
     let copyBundleIdentifier: () -> Void
     let copyBundlePath: () -> Void
     let copyExecutablePath: () -> Void
+    let codeSignatureInfo: CodeSignatureInfo?
+    let isInspectingCodeSignature: Bool
+    let signatureErrorMessage: String?
+    let signatureErrorDetails: String?
+    let copySigningIdentifier: () -> Void
+    let copyTeamIdentifier: () -> Void
+    let copySigningAuthority: (String) -> Void
+    let copyRawSigningDiagnostics: () -> Void
+    let copySignatureErrorDetails: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -93,6 +115,251 @@ private struct SelectedApplicationDetailsView: View {
             )
 
             MetadataDiagnosticsView(diagnostics: application.metadata.diagnostics)
+
+            Divider()
+
+            CodeSigningSectionView(
+                signatureInfo: codeSignatureInfo,
+                isLoading: isInspectingCodeSignature,
+                errorMessage: signatureErrorMessage,
+                errorDetails: signatureErrorDetails,
+                copySigningIdentifier: copySigningIdentifier,
+                copyTeamIdentifier: copyTeamIdentifier,
+                copyAuthority: copySigningAuthority,
+                copyRawDiagnostics: copyRawSigningDiagnostics,
+                copyErrorDetails: copySignatureErrorDetails
+            )
+        }
+    }
+}
+
+private struct CodeSigningSectionView: View {
+    let signatureInfo: CodeSignatureInfo?
+    let isLoading: Bool
+    let errorMessage: String?
+    let errorDetails: String?
+    let copySigningIdentifier: () -> Void
+    let copyTeamIdentifier: () -> Void
+    let copyAuthority: (String) -> Void
+    let copyRawDiagnostics: () -> Void
+    let copyErrorDetails: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Code Signing")
+                .font(.headline)
+
+            if isLoading {
+                HStack(spacing: 10) {
+                    ProgressView()
+                        .controlSize(.small)
+                    Text("Inspecting code signature...")
+                        .foregroundStyle(.secondary)
+                }
+            } else if let signatureInfo {
+                CodeSignatureDetailsView(
+                    signatureInfo: signatureInfo,
+                    copySigningIdentifier: copySigningIdentifier,
+                    copyTeamIdentifier: copyTeamIdentifier,
+                    copyAuthority: copyAuthority,
+                    copyRawDiagnostics: copyRawDiagnostics
+                )
+            } else if let errorMessage {
+                SignatureErrorView(
+                    message: errorMessage,
+                    details: errorDetails,
+                    copyDetails: copyErrorDetails
+                )
+            }
+        }
+    }
+}
+
+private struct CodeSignatureDetailsView: View {
+    let signatureInfo: CodeSignatureInfo
+    let copySigningIdentifier: () -> Void
+    let copyTeamIdentifier: () -> Void
+    let copyAuthority: (String) -> Void
+    let copyRawDiagnostics: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            SignatureStatusView(status: signatureInfo.signatureStatus)
+
+            CodeSignatureSummaryGrid(
+                signatureInfo: signatureInfo,
+                copySigningIdentifier: copySigningIdentifier,
+                copyTeamIdentifier: copyTeamIdentifier
+            )
+
+            SigningAuthoritiesView(
+                authorities: signatureInfo.authorities,
+                copyAuthority: copyAuthority
+            )
+
+            SignatureDiagnosticsView(diagnostics: signatureInfo.diagnostics)
+
+            DiagnosticDetailsView(
+                title: "Raw signing diagnostics",
+                details: signatureInfo.rawDiagnostics,
+                copyAction: copyRawDiagnostics
+            )
+        }
+    }
+
+}
+
+private struct SignatureStatusView: View {
+    let status: CodeSignatureStatus
+
+    var body: some View {
+        switch status {
+        case .valid:
+            Label("The application has a valid code signature.", systemImage: "checkmark.seal.fill")
+                .foregroundStyle(.green)
+        case .unsigned:
+            Label(
+                "The application is unsigned. Signing ID and Team ID are unavailable.",
+                systemImage: "exclamationmark.triangle"
+            )
+            .foregroundStyle(.orange)
+        case .invalid:
+            Label(
+                "The application signature is invalid. Review the diagnostic details.",
+                systemImage: "xmark.seal.fill"
+            )
+            .foregroundStyle(.red)
+        }
+    }
+}
+
+private struct CodeSignatureSummaryGrid: View {
+    let signatureInfo: CodeSignatureInfo
+    let copySigningIdentifier: () -> Void
+    let copyTeamIdentifier: () -> Void
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
+            CopyableMetadataRow(
+                label: "Signing ID",
+                value: signatureInfo.signingIdentifierDisplayValue,
+                copyAction: signatureInfo.signingIdentifier == nil ? nil : copySigningIdentifier
+            )
+            CopyableMetadataRow(
+                label: "Team ID",
+                value: signatureInfo.teamIdentifierDisplayValue,
+                copyAction: signatureInfo.teamIdentifier == nil ? nil : copyTeamIdentifier
+            )
+            CopyableMetadataRow(label: "Signed Status", value: signatureInfo.signatureStatus.displayValue)
+            CopyableMetadataRow(label: "Signature Format", value: signatureInfo.formatDisplayValue)
+            CopyableMetadataRow(
+                label: "Code Directory Version",
+                value: signatureInfo.codeDirectoryVersionDisplayValue
+            )
+            CopyableMetadataRow(label: "Code-signing Flags", value: signatureInfo.flagsDisplayValue)
+            CopyableMetadataRow(label: "Hardened Runtime", value: signatureInfo.hardenedRuntimeDisplayValue)
+            CopyableMetadataRow(label: "Signature Timestamp", value: signatureInfo.timestampDisplayValue)
+            CopyableMetadataRow(label: "Signing Origin", value: signatureInfo.signingOrigin.displayValue)
+            CopyableMetadataRow(label: "Apple-signed", value: signatureInfo.appleSignedDisplayValue)
+        }
+    }
+}
+
+private struct SigningAuthoritiesView: View {
+    let authorities: [String]
+    let copyAuthority: (String) -> Void
+
+    var body: some View {
+        Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
+            if authorities.isEmpty {
+                CopyableMetadataRow(label: "Signing Authority", value: "Unavailable")
+            } else {
+                ForEach(authorities.indices, id: \.self) { index in
+                    AuthorityRow(
+                        label: authorityLabel(for: index),
+                        authority: authorities[index],
+                        copyAction: copyAuthority
+                    )
+                }
+            }
+        }
+    }
+
+    private func authorityLabel(for index: Int) -> String {
+        authorities.count > 1 ? "Signing Authority \(index + 1)" : "Signing Authority"
+    }
+}
+
+private struct AuthorityRow: View {
+    let label: String
+    let authority: String
+    let copyAction: (String) -> Void
+
+    var body: some View {
+        CopyableMetadataRow(
+            label: label,
+            value: authority,
+            copyAction: { copyAction(authority) }
+        )
+    }
+}
+
+private struct SignatureDiagnosticsView: View {
+    let diagnostics: [CodeSignatureDiagnostic]
+
+    var body: some View {
+        if !diagnostics.isEmpty {
+            VStack(alignment: .leading, spacing: 6) {
+                ForEach(diagnostics.map(\.message), id: \.self) { message in
+                    Label(message, systemImage: "exclamationmark.triangle")
+                        .font(.callout)
+                        .foregroundStyle(.orange)
+                }
+            }
+        }
+    }
+}
+
+private struct SignatureErrorView: View {
+    let message: String
+    let details: String?
+    let copyDetails: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Label(message, systemImage: "exclamationmark.triangle")
+                .foregroundStyle(.red)
+
+            if let details, !details.isEmpty {
+                DiagnosticDetailsView(
+                    title: "Diagnostic details",
+                    details: details,
+                    copyAction: copyDetails
+                )
+            }
+        }
+    }
+}
+
+private struct DiagnosticDetailsView: View {
+    let title: String
+    let details: String
+    let copyAction: () -> Void
+
+    var body: some View {
+        DisclosureGroup(title) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(details)
+                    .font(.system(.caption, design: .monospaced))
+                    .textSelection(.enabled)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                Button(action: copyAction) {
+                    Label("Copy Diagnostics", systemImage: "doc.on.doc")
+                }
+                .buttonStyle(.borderless)
+            }
+            .padding(.top, 8)
         }
     }
 }
