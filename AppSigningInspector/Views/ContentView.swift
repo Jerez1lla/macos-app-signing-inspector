@@ -81,6 +81,7 @@ struct ContentView: View {
             signatureErrorDetails: viewModel.signatureErrorDetails,
             copySigningIdentifier: viewModel.copySigningIdentifier,
             copyTeamIdentifier: viewModel.copyTeamIdentifier,
+            copyDesignatedRequirement: viewModel.copyDesignatedRequirement,
             copySigningAuthority: viewModel.copySigningAuthority,
             copyRawSigningDiagnostics: viewModel.copyRawSigningDiagnostics,
             copySignatureErrorDetails: viewModel.copySignatureErrorDetails
@@ -99,6 +100,7 @@ private struct SelectedApplicationDetailsView: View {
     let signatureErrorDetails: String?
     let copySigningIdentifier: () -> Void
     let copyTeamIdentifier: () -> Void
+    let copyDesignatedRequirement: () -> Void
     let copySigningAuthority: (String) -> Void
     let copyRawSigningDiagnostics: () -> Void
     let copySignatureErrorDetails: () -> Void
@@ -125,6 +127,7 @@ private struct SelectedApplicationDetailsView: View {
                 errorDetails: signatureErrorDetails,
                 copySigningIdentifier: copySigningIdentifier,
                 copyTeamIdentifier: copyTeamIdentifier,
+                copyDesignatedRequirement: copyDesignatedRequirement,
                 copyAuthority: copySigningAuthority,
                 copyRawDiagnostics: copyRawSigningDiagnostics,
                 copyErrorDetails: copySignatureErrorDetails
@@ -140,6 +143,7 @@ private struct CodeSigningSectionView: View {
     let errorDetails: String?
     let copySigningIdentifier: () -> Void
     let copyTeamIdentifier: () -> Void
+    let copyDesignatedRequirement: () -> Void
     let copyAuthority: (String) -> Void
     let copyRawDiagnostics: () -> Void
     let copyErrorDetails: () -> Void
@@ -161,6 +165,7 @@ private struct CodeSigningSectionView: View {
                     signatureInfo: signatureInfo,
                     copySigningIdentifier: copySigningIdentifier,
                     copyTeamIdentifier: copyTeamIdentifier,
+                    copyDesignatedRequirement: copyDesignatedRequirement,
                     copyAuthority: copyAuthority,
                     copyRawDiagnostics: copyRawDiagnostics
                 )
@@ -179,6 +184,7 @@ private struct CodeSignatureDetailsView: View {
     let signatureInfo: CodeSignatureInfo
     let copySigningIdentifier: () -> Void
     let copyTeamIdentifier: () -> Void
+    let copyDesignatedRequirement: () -> Void
     let copyAuthority: (String) -> Void
     let copyRawDiagnostics: () -> Void
 
@@ -190,6 +196,11 @@ private struct CodeSignatureDetailsView: View {
                 signatureInfo: signatureInfo,
                 copySigningIdentifier: copySigningIdentifier,
                 copyTeamIdentifier: copyTeamIdentifier
+            )
+
+            DesignatedRequirementView(
+                inspection: signatureInfo.designatedRequirementInspection,
+                copyAction: copyDesignatedRequirement
             )
 
             SigningAuthoritiesView(
@@ -207,6 +218,48 @@ private struct CodeSignatureDetailsView: View {
         }
     }
 
+}
+
+private struct DesignatedRequirementView: View {
+    let inspection: DesignatedRequirementInspection?
+    let copyAction: () -> Void
+
+    private var statusText: String {
+        inspection?.status.displayValue ?? "Unavailable"
+    }
+
+    var body: some View {
+        DisclosureGroup {
+            VStack(alignment: .leading, spacing: 8) {
+                if let requirement = inspection?.requirement {
+                    Text(requirement)
+                        .font(.system(.caption, design: .monospaced))
+                        .textSelection(.enabled)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                    Button(action: copyAction) {
+                        Label("Copy Designated Requirement", systemImage: "doc.on.doc")
+                    }
+                    .buttonStyle(.borderless)
+                } else {
+                    Text(statusText)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .padding(.top, 8)
+        } label: {
+            HStack {
+                Text("Designated Requirement")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(statusText)
+                    .font(.callout)
+            }
+        }
+    }
 }
 
 private struct SignatureStatusView: View {

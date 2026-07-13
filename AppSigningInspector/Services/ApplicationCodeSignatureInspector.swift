@@ -5,13 +5,16 @@ struct ApplicationCodeSignatureInspector: CodeSignatureInspecting {
 
     private let processRunner: ProcessRunning
     private let outputParser: CodeSignatureOutputParsing
+    private let designatedRequirementParser: DesignatedRequirementOutputParsing
 
     init(
         processRunner: ProcessRunning = FoundationProcessRunner(),
-        outputParser: CodeSignatureOutputParsing = CodeSignatureOutputParser()
+        outputParser: CodeSignatureOutputParsing = CodeSignatureOutputParser(),
+        designatedRequirementParser: DesignatedRequirementOutputParsing = DesignatedRequirementOutputParser()
     ) {
         self.processRunner = processRunner
         self.outputParser = outputParser
+        self.designatedRequirementParser = designatedRequirementParser
     }
 
     func inspect(applicationAt applicationURL: URL) async throws -> CodeSignatureInfo {
@@ -26,20 +29,87 @@ struct ApplicationCodeSignatureInspector: CodeSignatureInspecting {
             verificationResult: nil
         )
 
-        guard displayInfo.signatureStatus == .valid else {
-            return displayInfo
+        if displayInfo.signatureStatus == .unsigned {
+            return displayInfo.includingDesignatedRequirement(
+                DesignatedRequirementInspection(
+                    requirement: nil,
+                    status: .unsigned,
+                    diagnosticDetails: nil,
+                    processResult: nil
+                )
+            )
         }
 
-        guard FileManager.default.fileExists(atPath: applicationURL.path) else {
-            throw CodeSignatureInspectionError.applicationUnavailable(applicationURL)
+        let signatureInfo: CodeSignatureInfo
+        if displayInfo.signatureStatus == .valid {
+            guard FileManager.default.fileExists(atPath: applicationURL.path) else {
+                throw CodeSignatureInspectionError.applicationUnavailable(applicationURL)
+            }
+
+            let verificationArguments = ["--verify", "--verbose=4", applicationURL.path]
+            let verificationResult = try await run(arguments: verificationArguments)
+            signatureInfo = try outputParser.parse(
+                displayResult: displayResult,
+                verificationResult: verificationResult
+            )
+        } else {
+            signatureInfo = displayInfo
         }
 
-        let verificationArguments = ["--verify", "--verbose=4", applicationURL.path]
-        let verificationResult = try await run(arguments: verificationArguments)
-        return try outputParser.parse(
-            displayResult: displayResult,
-            verificationResult: verificationResult
+        return await inspectDesignatedRequirement(
+            applicationURL: applicationURL,
+            signatureInfo: signatureInfo
         )
+    }
+
+    private func inspectDesignatedRequirement(
+        applicationURL: URL,
+        signatureInfo: CodeSignatureInfo
+    ) async -> CodeSignatureInfo {
+        guard FileManager.default.fileExists(atPath: applicationURL.path) else {
+            return signatureInfo.includingDesignatedRequirement(
+                DesignatedRequirementInspection(
+                    requirement: nil,
+                    status: .applicationUnavailable,
+                    diagnosticDetails: "Application path: \(applicationURL.path)",
+                    processResult: nil
+                )
+            )
+        }
+
+        let arguments = ["-dr", "-", applicationURL.path]
+        do {
+            let result = try await processRunner.run(
+                executableURL: Self.codesignURL,
+                arguments: arguments
+            )
+            return signatureInfo.includingDesignatedRequirement(
+                designatedRequirementParser.parse(result)
+            )
+        } catch let error as ProcessExecutionError {
+            return signatureInfo.includingDesignatedRequirement(
+                DesignatedRequirementInspection(
+                    requirement: nil,
+                    status: .executionFailed,
+                    diagnosticDetails: error.diagnosticText,
+                    processResult: nil
+                )
+            )
+        } catch {
+            let processError = ProcessExecutionError.launchFailed(
+                executableURL: Self.codesignURL,
+                arguments: arguments,
+                description: error.localizedDescription
+            )
+            return signatureInfo.includingDesignatedRequirement(
+                DesignatedRequirementInspection(
+                    requirement: nil,
+                    status: .executionFailed,
+                    diagnosticDetails: processError.diagnosticText,
+                    processResult: nil
+                )
+            )
+        }
     }
 
     private func run(arguments: [String]) async throws -> ProcessResult {
