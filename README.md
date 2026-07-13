@@ -12,7 +12,7 @@ App Signing Inspector is currently in early development.
 
 Current version:
 
-`0.1.0`
+`0.2.0`
 
 The initial development focus is the Version 1.0 application-inspection and DDM policy-builder workflow.
 
