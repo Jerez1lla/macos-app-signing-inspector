@@ -1,0 +1,53 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Xcode user-specific data
+xcuserdata/
+*.xcuserstate
+*.xcscmblueprint
+
+# Xcode build output
+DerivedData/
+build/
+Build/
+*.ipa
+*.dSYM
+*.dSYM.zip
+*.xcarchive
+*.result
+*.xcresult
+
+# Swift Package Manager build output
+.build/
+Packages/
+Package.resolved
+
+# Code signing and provisioning material
+*.mobileprovision
+*.provisionprofile
+*.cer
+*.p12
+*.pem
+*.key
+
+# Windows and editor temporary files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Logs
+*.log
