@@ -8,7 +8,9 @@ final class PolicyBuilderViewModel: ObservableObject {
     @Published private(set) var notices: [PolicyBuilderNotice] = []
     @Published private(set) var alwaysAllowManagedApps = false
     @Published private(set) var isAddingApplications = false
+    @Published private(set) var isPreparingJamfRule = false
     @Published private(set) var isExporting = false
+    @Published private(set) var pendingJamfTeamRule: JamfDeveloperTeamRuleCandidate?
     @Published private(set) var jsonPreview: String?
     @Published private(set) var generationErrorMessage: String?
     @Published private(set) var workflowErrorMessage: String?
@@ -55,6 +57,7 @@ final class PolicyBuilderViewModel: ObservableObject {
 
     var canExport: Bool {
         !isAddingApplications
+            && !isPreparingJamfRule
             && !isExporting
             && (!entries.isEmpty || alwaysAllowManagedApps)
             && entries.allSatisfy(\.isValid)
@@ -63,6 +66,10 @@ final class PolicyBuilderViewModel: ObservableObject {
 
     var allowsAllAppleBinaries: Bool {
         entries.contains { $0.rule.type == .appleBinaries }
+    }
+
+    var isPerformingPolicyOperation: Bool {
+        isAddingApplications || isPreparingJamfRule || isExporting
     }
 
     var allowOnlySafetyWarning: String? {
@@ -136,6 +143,96 @@ final class PolicyBuilderViewModel: ObservableObject {
         } catch {
             workflowErrorMessage = "Applications could not be selected. Try again."
         }
+    }
+
+    func selectJamfDeveloperApplication() async {
+        workflowErrorMessage = nil
+        exportStatusMessage = nil
+        pendingJamfTeamRule = nil
+
+        do {
+            let result = try await picker.selectDeveloperApplication()
+            guard case .selected(let applicationURL) = result else {
+                return
+            }
+
+            isPreparingJamfRule = true
+            defer { isPreparingJamfRule = false }
+
+            let metadata: ApplicationMetadata
+            do {
+                metadata = try metadataInspector.metadata(for: applicationURL)
+            } catch {
+                workflowErrorMessage = "The selected application could not be read. Choose an installed signed Jamf application."
+                return
+            }
+
+            let signatureInfo: CodeSignatureInfo
+            do {
+                signatureInfo = try await codeSignatureInspector.inspect(applicationAt: applicationURL)
+            } catch {
+                workflowErrorMessage = "The selected application's code signature could not be inspected. Choose a signed Jamf application and try again."
+                return
+            }
+
+            guard signatureInfo.signatureStatus == .valid else {
+                workflowErrorMessage = signatureInfo.signatureStatus == .unsigned
+                    ? "The selected application is unsigned. Choose a signed Jamf application to create a developer-wide rule."
+                    : "The selected application has an invalid signature. Choose a valid signed Jamf application."
+                return
+            }
+            guard let teamIdentifier = signatureInfo.teamIdentifier?
+                .trimmingCharacters(in: .whitespacesAndNewlines),
+                !teamIdentifier.isEmpty else {
+                workflowErrorMessage = "The selected application has no Team ID. Choose a signed Jamf application with a Team ID."
+                return
+            }
+
+            pendingJamfTeamRule = JamfDeveloperTeamRuleCandidate(
+                applicationURL: applicationURL,
+                sourceApplicationName: metadata.displayName,
+                teamIdentifier: teamIdentifier,
+                signingAuthority: signatureInfo.authorities.first
+            )
+        } catch {
+            workflowErrorMessage = "The Jamf application could not be selected. Try again."
+        }
+    }
+
+    @discardableResult
+    func confirmJamfDeveloperTeamRule() -> Bool {
+        guard let candidate = pendingJamfTeamRule else {
+            return false
+        }
+        let rule = PolicyRule.developerTeam(teamIdentifier: candidate.teamIdentifier)
+        guard !containsDuplicate(rule: rule) else {
+            workflowErrorMessage = "A developer-wide rule for Team ID \(candidate.teamIdentifier) already exists. Review the existing rule."
+            notices.append(.duplicateRule("developer Team ID \(candidate.teamIdentifier)"))
+            pendingJamfTeamRule = nil
+            return false
+        }
+
+        entries.append(PolicyEntry(
+            id: entryIDProvider(),
+            applicationURL: candidate.applicationURL,
+            displayName: "Jamf developer-wide allow",
+            icon: nil,
+            signingAuthority: candidate.signingAuthority,
+            sourceApplicationName: candidate.sourceApplicationName,
+            applicationSigningIdentifier: nil,
+            applicationTeamIdentifier: candidate.teamIdentifier,
+            rule: rule,
+            action: .allow,
+            validationState: ruleValidator.validate(rule, action: .allow)
+        ))
+        pendingJamfTeamRule = nil
+        exportStatusMessage = nil
+        refreshGenerationState()
+        return true
+    }
+
+    func cancelJamfDeveloperTeamRule() {
+        pendingJamfTeamRule = nil
     }
 
     func setAlwaysAllowManagedApps(_ enabled: Bool) {

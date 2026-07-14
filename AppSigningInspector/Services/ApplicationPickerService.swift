@@ -36,6 +36,21 @@ struct ApplicationPickerService: ApplicationPicking, PolicyApplicationPicking {
     }
 
     @MainActor
+    func selectDeveloperApplication() async throws -> DeveloperApplicationPickerResult {
+        let panel = applicationPanel(
+            title: "Select Jamf-Signed Application",
+            prompt: "Select Application",
+            message: "Choose an installed Jamf-signed application to detect its actual Team ID.",
+            allowsMultipleSelection: false
+        )
+
+        guard panel.runModal() == .OK, let selectedURL = panel.url else {
+            return .cancelled
+        }
+        return .selected(selectedURL)
+    }
+
+    @MainActor
     private func applicationPanel(
         title: String,
         prompt: String,

@@ -8,7 +8,7 @@ The application should make it easy for administrators to identify the values re
 
 ## Problem Statement
 
-Mac administrators frequently need to inspect applications using command-line tools such as `codesign`, `spctl`, and `lipo`.
+Mac administrators frequently need to inspect applications using command-line tools such as `codesign` and `spctl`, while other details can be obtained through native macOS APIs.
 
 Although these tools provide the required information, the process has several limitations:
 
@@ -125,7 +125,7 @@ The application should inspect files without modifying them. It should not chang
 
 ### Transparent
 
-When the application uses Apple command-line tools such as `codesign`, `spctl`, or `lipo`, the behavior should be documented. Errors should explain what failed rather than hiding the underlying problem.
+When the application uses Apple command-line tools such as `codesign` or `spctl`, the behavior should be documented. Reliable native APIs should be preferred so end users are not required to install developer tools. Errors should explain what failed rather than hiding the underlying problem.
 
 ### Maintainable
 

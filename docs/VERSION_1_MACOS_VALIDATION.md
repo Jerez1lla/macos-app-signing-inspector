@@ -22,6 +22,8 @@ Complete this checklist on macOS 27 with Xcode 27 beta before creating a Version
 - [ ] Code-signature information displays correctly
 - [ ] Designated Requirement displays and copies
 - [ ] Gatekeeper and architecture results display correctly
+- [ ] Architecture inspection works without Xcode or Xcode Command Line Tools installed
+- [ ] Architecture inspection details contain native bundle information and no developer-tool diagnostics
 - [ ] Partial inspection failures preserve successful results
 
 ## Policy Builder
@@ -30,6 +32,8 @@ Complete this checklist on macOS 27 with Xcode 27 beta before creating a Version
 - [ ] App rules can be added
 - [ ] Allow and Deny can be changed
 - [ ] Developer-wide rules work
+- [ ] Allow All Jamf Binaries selects one application and displays its detected Team ID before confirmation
+- [ ] Unsigned or missing-Team-ID applications cannot create a Jamf developer-wide rule
 - [ ] `*APPLE*` rule works
 - [ ] `AlwaysAllowManagedApps` works
 - [ ] `PathPrefix` works
