@@ -1,9 +1,11 @@
 import Combine
 import Foundation
+import SwiftUI
 
 @MainActor
 final class AppWorkspaceController: ObservableObject {
     @Published var selectedWorkspace: WorkspaceDestination? = .defaultDestination
+    @Published var columnVisibility: NavigationSplitViewVisibility = .all
 
     let inspectorViewModel: ApplicationBrowserViewModel
     let policyBuilderViewModel: PolicyBuilderViewModel

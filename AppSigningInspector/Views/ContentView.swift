@@ -8,7 +8,7 @@ struct ContentView: View {
     }
 
     var body: some View {
-        NavigationSplitView {
+        NavigationSplitView(columnVisibility: $workspace.columnVisibility) {
             List(WorkspaceDestination.allCases, selection: $workspace.selectedWorkspace) { destination in
                 Label(destination.title, systemImage: destination.systemImage)
                     .tag(destination)
