@@ -38,8 +38,7 @@ final class AppWorkspaceController: ObservableObject {
                 && !inspectorViewModel.isInspectingCodeSignature
                 && !inspectorViewModel.isValidatingSecurity
         case .policyBuilder:
-            return !policyBuilderViewModel.isAddingApplications
-                && !policyBuilderViewModel.isExporting
+            return !policyBuilderViewModel.isPerformingPolicyOperation
         }
     }
 

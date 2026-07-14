@@ -299,6 +299,7 @@ final class PolicyBuilderViewModelTests: XCTestCase {
         let allowed = try allowedObject(from: object)
         let binary = try XCTUnwrap((allowed["AllowedBinaries"] as? [[String: String]])?.first)
         XCTAssertEqual(binary, ["TeamID": "*APPLE*"])
+        XCTAssertNil(PolicyBuilderCopy.allowAllAppleVisibleDescription)
     }
 
     @MainActor
@@ -335,6 +336,184 @@ final class PolicyBuilderViewModelTests: XCTestCase {
 
         XCTAssertEqual(viewModel.entries.map(\.rule), [.appleBinaries])
         XCTAssertTrue(viewModel.allowsAllAppleBinaries)
+    }
+
+    @MainActor
+    func testJamfWorkflowSelectsApplicationAndRequiresConfirmation() async {
+        let url = appURL("Jamf Protect")
+        let picker = PolicyApplicationPicker(
+            results: [],
+            developerResults: [.selected(url)]
+        )
+        let viewModel = makeViewModel(
+            pickerResults: [],
+            picker: picker,
+            metadataResults: [.success(metadata(for: url, name: "Jamf Protect"))],
+            signatureResults: [.success(signatureInfo(
+                signingIdentifier: "com.jamf.protect",
+                teamIdentifier: "ACTUALJAMFTEAM",
+                authorities: ["Developer ID Application: Jamf Software"]
+            ))]
+        )
+
+        await viewModel.selectJamfDeveloperApplication()
+
+        XCTAssertEqual(picker.developerSelectionCount, 1)
+        XCTAssertEqual(viewModel.pendingJamfTeamRule?.teamIdentifier, "ACTUALJAMFTEAM")
+        XCTAssertEqual(viewModel.pendingJamfTeamRule?.sourceApplicationName, "Jamf Protect")
+        XCTAssertEqual(viewModel.entries.count, 0)
+    }
+
+    @MainActor
+    func testConfirmedJamfRuleUsesActualTeamIDWithoutPresentationDataInJSON() async throws {
+        let url = appURL("Jamf Pro")
+        let picker = PolicyApplicationPicker(results: [], developerResults: [.selected(url)])
+        let viewModel = makeViewModel(
+            pickerResults: [],
+            picker: picker,
+            metadataResults: [.success(metadata(for: url, name: "Jamf Pro"))],
+            signatureResults: [.success(signatureInfo(
+                signingIdentifier: "com.jamf.management",
+                teamIdentifier: "VERIFIEDTEAM",
+                authorities: ["Developer ID Application: Jamf Software"]
+            ))]
+        )
+
+        await viewModel.selectJamfDeveloperApplication()
+        XCTAssertTrue(viewModel.confirmJamfDeveloperTeamRule())
+
+        let entry = try XCTUnwrap(viewModel.entries.first)
+        XCTAssertEqual(entry.displayName, "Jamf developer-wide allow")
+        XCTAssertEqual(entry.sourceApplicationName, "Jamf Pro")
+        XCTAssertEqual(entry.rule, .developerTeam(teamIdentifier: "VERIFIEDTEAM"))
+        let json = try XCTUnwrap(viewModel.jsonPreview)
+        let allowed = try allowedObject(from: jsonObject(from: json))
+        let binary = try XCTUnwrap((allowed["AllowedBinaries"] as? [[String: String]])?.first)
+        XCTAssertEqual(binary, ["TeamID": "VERIFIEDTEAM"])
+        XCTAssertFalse(json.contains("Jamf developer-wide allow"))
+        XCTAssertFalse(json.lowercased().contains("*jamf*"))
+    }
+
+    @MainActor
+    func testJamfNamedUnsignedApplicationCannotCreateRule() async {
+        let url = appURL("Jamf")
+        let picker = PolicyApplicationPicker(results: [], developerResults: [.selected(url)])
+        let viewModel = makeViewModel(
+            pickerResults: [],
+            picker: picker,
+            metadataResults: [.success(metadata(for: url, name: "Jamf"))],
+            signatureResults: [.success(signatureInfo(
+                signingIdentifier: nil,
+                teamIdentifier: nil,
+                signatureStatus: .unsigned
+            ))]
+        )
+
+        await viewModel.selectJamfDeveloperApplication()
+
+        XCTAssertNil(viewModel.pendingJamfTeamRule)
+        XCTAssertTrue(viewModel.entries.isEmpty)
+        XCTAssertTrue(viewModel.workflowErrorMessage?.contains("unsigned") == true)
+    }
+
+    @MainActor
+    func testJamfApplicationMissingTeamIDCannotCreateRule() async {
+        let url = appURL("Jamf Connect")
+        let picker = PolicyApplicationPicker(results: [], developerResults: [.selected(url)])
+        let viewModel = makeViewModel(
+            pickerResults: [],
+            picker: picker,
+            metadataResults: [.success(metadata(for: url, name: "Jamf Connect"))],
+            signatureResults: [.success(signatureInfo(
+                signingIdentifier: "com.jamf.connect",
+                teamIdentifier: nil
+            ))]
+        )
+
+        await viewModel.selectJamfDeveloperApplication()
+
+        XCTAssertNil(viewModel.pendingJamfTeamRule)
+        XCTAssertTrue(viewModel.entries.isEmpty)
+        XCTAssertTrue(viewModel.workflowErrorMessage?.contains("no Team ID") == true)
+    }
+
+    @MainActor
+    func testDuplicateJamfTeamIDIsRejected() async {
+        let url = appURL("Jamf Protect")
+        let picker = PolicyApplicationPicker(results: [], developerResults: [.selected(url)])
+        let viewModel = makeViewModel(
+            pickerResults: [],
+            picker: picker,
+            metadataResults: [.success(metadata(for: url, name: "Jamf Protect"))],
+            signatureResults: [.success(signatureInfo(
+                signingIdentifier: "com.jamf.protect",
+                teamIdentifier: "DUPLICATETEAM"
+            ))]
+        )
+        XCTAssertTrue(viewModel.addDeveloperTeamRule(teamIdentifier: "DUPLICATETEAM"))
+
+        await viewModel.selectJamfDeveloperApplication()
+
+        XCTAssertFalse(viewModel.confirmJamfDeveloperTeamRule())
+        XCTAssertEqual(viewModel.entries.count, 1)
+        XCTAssertTrue(viewModel.workflowErrorMessage?.contains("already exists") == true)
+    }
+
+    @MainActor
+    func testFailedJamfInspectionPreservesExistingEntries() async throws {
+        let existingURL = appURL("Existing")
+        let jamfURL = appURL("Jamf")
+        let picker = PolicyApplicationPicker(
+            results: [.selected([existingURL])],
+            developerResults: [.selected(jamfURL)]
+        )
+        let viewModel = makeViewModel(
+            pickerResults: [],
+            picker: picker,
+            metadataResults: [
+                .success(metadata(for: existingURL, name: "Existing")),
+                .success(metadata(for: jamfURL, name: "Jamf"))
+            ],
+            signatureResults: [
+                .success(signatureInfo(signingIdentifier: "existing.app", teamIdentifier: "EXISTINGTEAM")),
+                .success(signatureInfo(signingIdentifier: "jamf.app", teamIdentifier: nil))
+            ]
+        )
+        await viewModel.addApplications()
+        let existingID = try XCTUnwrap(viewModel.entries.first?.id)
+
+        await viewModel.selectJamfDeveloperApplication()
+
+        XCTAssertEqual(viewModel.entries.map(\.id), [existingID])
+        XCTAssertNotNil(viewModel.jsonPreview)
+    }
+
+    @MainActor
+    func testJamfBroadRuleProducesRedundancyWarningForSpecificAllowRule() async {
+        let url = appURL("Jamf Protect")
+        let picker = PolicyApplicationPicker(
+            results: [.selected([url])],
+            developerResults: [.selected(url)]
+        )
+        let viewModel = makeViewModel(
+            pickerResults: [],
+            picker: picker,
+            metadataResults: [
+                .success(metadata(for: url, name: "Jamf Protect")),
+                .success(metadata(for: url, name: "Jamf Protect"))
+            ],
+            signatureResults: [
+                .success(signatureInfo(signingIdentifier: "com.jamf.protect", teamIdentifier: "JAMFTEAM")),
+                .success(signatureInfo(signingIdentifier: "com.jamf.protect", teamIdentifier: "JAMFTEAM"))
+            ]
+        )
+        await viewModel.addApplications()
+        viewModel.setAction(.allow, for: viewModel.entries[0].id)
+
+        await viewModel.selectJamfDeveloperApplication()
+        XCTAssertTrue(viewModel.confirmJamfDeveloperTeamRule())
+
+        XCTAssertTrue(viewModel.safetyWarnings.contains { $0.contains("may already include") })
     }
 
     @MainActor
@@ -449,6 +628,7 @@ final class PolicyBuilderViewModelTests: XCTestCase {
     @MainActor
     private func makeViewModel(
         pickerResults: [PolicyApplicationPickerResult],
+        picker: PolicyApplicationPicker? = nil,
         metadataResults: [Result<ApplicationMetadata, ApplicationMetadataError>],
         signatureResults: [Result<CodeSignatureInfo, CodeSignatureInspectionError>] = [],
         signatureInspector: PolicySignatureInspector? = nil,
@@ -456,7 +636,7 @@ final class PolicyBuilderViewModelTests: XCTestCase {
         exporter: PolicyJSONExporter = PolicyJSONExporter(result: .cancelled)
     ) -> PolicyBuilderViewModel {
         PolicyBuilderViewModel(
-            picker: PolicyApplicationPicker(results: pickerResults),
+            picker: picker ?? PolicyApplicationPicker(results: pickerResults),
             metadataInspector: PolicyMetadataInspector(results: metadataResults),
             codeSignatureInspector: signatureInspector ?? PolicySignatureInspector(results: signatureResults),
             iconLoader: PolicyIconLoader(),
@@ -487,17 +667,22 @@ final class PolicyBuilderViewModelTests: XCTestCase {
         )
     }
 
-    private func signatureInfo(signingIdentifier: String?, teamIdentifier: String?) -> CodeSignatureInfo {
+    private func signatureInfo(
+        signingIdentifier: String?,
+        teamIdentifier: String?,
+        signatureStatus: CodeSignatureStatus = .valid,
+        authorities: [String] = []
+    ) -> CodeSignatureInfo {
         CodeSignatureInfo(
             signingIdentifier: signingIdentifier,
             teamIdentifier: teamIdentifier,
-            authorities: [],
+            authorities: authorities,
             format: "app bundle with Mach-O thin (arm64)",
             codeDirectoryVersion: "20500",
             flags: "0x10000(runtime)",
             hardenedRuntimeEnabled: true,
             timestamp: nil,
-            signatureStatus: .valid,
+            signatureStatus: signatureStatus,
             signingOrigin: .thirdParty,
             diagnostics: [],
             processResults: []
@@ -516,14 +701,26 @@ final class PolicyBuilderViewModelTests: XCTestCase {
 
 private final class PolicyApplicationPicker: PolicyApplicationPicking {
     private var results: [PolicyApplicationPickerResult]
+    private var developerResults: [DeveloperApplicationPickerResult]
+    private(set) var developerSelectionCount = 0
 
-    init(results: [PolicyApplicationPickerResult]) {
+    init(
+        results: [PolicyApplicationPickerResult],
+        developerResults: [DeveloperApplicationPickerResult] = []
+    ) {
         self.results = results
+        self.developerResults = developerResults
     }
 
     @MainActor
     func selectApplications() async throws -> PolicyApplicationPickerResult {
         results.removeFirst()
+    }
+
+    @MainActor
+    func selectDeveloperApplication() async throws -> DeveloperApplicationPickerResult {
+        developerSelectionCount += 1
+        return developerResults.removeFirst()
     }
 }
 

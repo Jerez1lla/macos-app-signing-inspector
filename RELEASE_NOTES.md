@@ -10,6 +10,7 @@ This is release-candidate documentation. Version 1.0.0 must be built, tested, an
 * Review application metadata, bundle and executable paths, and architectures.
 * Review signature validity, Signing ID, Team ID, authorities, signing flags, hardened runtime status, timestamps, Apple-signing status, and the designated requirement.
 * Review local Gatekeeper and conservative notarization results.
+* Inspect main-executable architectures through native Foundation bundle APIs without requiring Xcode or Xcode Command Line Tools.
 * Copy individual technical values and advanced diagnostics.
 
 ## Policy Builder
@@ -17,6 +18,7 @@ This is release-candidate documentation. Version 1.0.0 must be built, tested, an
 * Build a policy from multiple applications while keeping Inspector state independent.
 * Create Allow and Deny rules for specific applications.
 * Create developer Team ID Allow rules and Apple-wide `*APPLE*` Allow rules.
+* Use **Allow All Jamf Binaries** to select a signed Jamf application, review its detected Team ID, and confirm a developer-wide Allow rule.
 * Configure optional `PathPrefix` restrictions and `AlwaysAllowManagedApps`.
 * Detect duplicate, redundant, unsupported, and incomplete rules.
 * Generate a complete `com.apple.configuration.app.settings` declaration.
@@ -39,3 +41,4 @@ The DDM binary-management model targets macOS 27 and is based on AppleSeed beta 
 * No persistent policy or inspection history
 * No network-based Team ID or certificate verification
 * Local Gatekeeper results are not authoritative remote Apple verification
+* Jamf convenience rules verify the selected application's signature and Team ID locally; they do not perform network-based Jamf identity verification

@@ -35,6 +35,7 @@ Generated declarations can be previewed, copied, and exported as local `.json` f
 * Specific application rules using Signing ID and Team ID, with Allow or Deny action
 * Developer-wide Allow rules using a Team ID
 * Apple-wide Allow rules using Apple's documented `*APPLE*` Team ID token
+* A Jamf convenience workflow that detects the actual Team ID from a selected signed Jamf application and requires confirmation before adding a developer-wide rule
 * Optional absolute `PathPrefix` restrictions for specific application rules
 * Optional `AlwaysAllowManagedApps`
 
@@ -117,6 +118,8 @@ Application inspection is performed locally.
 
 The project must not transmit application paths, signing information, certificate details, Team IDs, or other inspected metadata unless a future networked feature is explicitly designed, documented, and approved.
 
+Architecture inspection uses Foundation's native bundle APIs and does not load or launch the selected application. End users do not need Xcode, Xcode Command Line Tools, license acceptance, or Terminal access for architecture inspection.
+
 ## Prerequisites
 
 Expected prerequisites include:
@@ -128,6 +131,8 @@ Expected prerequisites include:
 * Git, recommended for source control
 
 The application cannot be compiled on Windows because native macOS applications require Apple's macOS and Xcode toolchain.
+
+These developer prerequisites apply only to building the project. A distributed application does not require Xcode or Xcode Command Line Tools for normal inspection or policy-building workflows.
 
 ## Repository Layout
 
@@ -232,8 +237,6 @@ Potential tools include:
 
 * `codesign`
 * `spctl`
-* `lipo`
-* `file`
 
 Shell and platform interactions must be isolated behind services. SwiftUI views must not execute these tools directly.
 
@@ -241,7 +244,7 @@ Code-signature inspection launches `/usr/bin/codesign` directly through a proces
 
 Designated requirements are retrieved with `codesign -dr -` and shown without reconstructing or simplifying the requirement expression. Failure to retrieve a designated requirement does not discard other signature information.
 
-Security validation launches `/usr/sbin/spctl` for a local Gatekeeper assessment and `/usr/bin/lipo -archs` for the selected application's main executable. These checks reuse the process-running service, use independently testable parsers, and preserve partial results when one check fails.
+Security validation launches `/usr/sbin/spctl` for a local Gatekeeper assessment. Main-executable architecture inspection is self-contained and reads `Bundle(url:)`, `executableURL`, and `executableArchitectures` through a dedicated native service. Gatekeeper and architecture checks remain independent so partial results are preserved when one check is unavailable.
 
 Gatekeeper acceptance reflects the local Mac's current security policy and is not authoritative remote verification by Apple. The application reports notarization only when the local assessment source explicitly supports that conclusion; otherwise it uses an unconfirmed or unknown status.
 
@@ -260,6 +263,10 @@ Generated declaration data must track Apple's official Declarative Device Manage
 Because the project is initially being developed against beta operating-system functionality, payload structure and behavior may change before the final macOS 27 release.
 
 The advanced binary-rule schema is based on macOS 27 AppleSeed for IT beta test documentation. The builder does not invent company wildcard tokens: only the documented `*APPLE*` special token is supported, and third-party developer rules use an actual Team ID.
+
+Signing ID identifies a signed application or binary identity. Team ID identifies its signing developer or organization, so a Team-ID-only rule is broader than a specific rule containing both Signing ID and Team ID. Bundle identifier prefixes, company names, application names, and signing-authority labels are not Team IDs and are never converted into them.
+
+The **Allow All Jamf Binaries** convenience workflow asks the administrator to select an installed signed Jamf application, inspects its code signature, displays the detected Team ID and signing context, and requires confirmation before adding a Team-ID-only Allow rule. It does not infer identity from the application name and never generates an undocumented `*jamf*` wildcard.
 
 Team-ID-only `DeniedBinaries` objects are not generated because that exact object shape has not yet been verified in sufficiently explicit schema documentation. Developer-wide rules are therefore Allow-only until Apple documents and validates the denied form.
 
