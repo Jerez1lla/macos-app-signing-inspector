@@ -8,7 +8,7 @@ struct SecuritySectionView: View {
     let copyGatekeeperRejectionReason: () -> Void
     let copyArchitectureList: () -> Void
     let copyRawGatekeeperDiagnostics: () -> Void
-    let copyRawArchitectureDiagnostics: () -> Void
+    let copyArchitectureInspectionDetails: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -30,7 +30,7 @@ struct SecuritySectionView: View {
                     copyGatekeeperRejectionReason: copyGatekeeperRejectionReason,
                     copyArchitectureList: copyArchitectureList,
                     copyRawGatekeeperDiagnostics: copyRawGatekeeperDiagnostics,
-                    copyRawArchitectureDiagnostics: copyRawArchitectureDiagnostics
+                    copyArchitectureInspectionDetails: copyArchitectureInspectionDetails
                 )
             }
         }
@@ -44,7 +44,7 @@ private struct SecurityAssessmentDetailsView: View {
     let copyGatekeeperRejectionReason: () -> Void
     let copyArchitectureList: () -> Void
     let copyRawGatekeeperDiagnostics: () -> Void
-    let copyRawArchitectureDiagnostics: () -> Void
+    let copyArchitectureInspectionDetails: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -61,6 +61,7 @@ private struct SecurityAssessmentDetailsView: View {
                 Label(errorMessage, systemImage: "exclamationmark.triangle")
                     .font(.callout)
                     .foregroundStyle(.orange)
+                    .accessibilityLabel("Security assessment warning: \(errorMessage)")
             }
 
             if let diagnostics = assessment.gatekeeper.rawDiagnostics, !diagnostics.isEmpty {
@@ -73,9 +74,9 @@ private struct SecurityAssessmentDetailsView: View {
 
             if let diagnostics = assessment.architecture.rawDiagnostics, !diagnostics.isEmpty {
                 DiagnosticDetailsView(
-                    title: "Raw architecture diagnostics",
+                    title: "Architecture inspection details",
                     details: diagnostics,
-                    copyAction: copyRawArchitectureDiagnostics
+                    copyAction: copyArchitectureInspectionDetails
                 )
             }
         }
@@ -114,6 +115,7 @@ private struct SecurityValidationSummaryView: View {
     var body: some View {
         Label(status.displayValue, systemImage: symbolName)
             .foregroundStyle(color)
+            .accessibilityLabel("Security validation status: \(status.displayValue)")
     }
 }
 

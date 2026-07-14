@@ -130,7 +130,7 @@ final class ApplicationBrowserViewModel: ObservableObject {
         copy(securityAssessment?.gatekeeper.rawDiagnostics)
     }
 
-    func copyRawArchitectureDiagnostics() {
+    func copyArchitectureInspectionDetails() {
         copy(securityAssessment?.architecture.rawDiagnostics)
     }
 

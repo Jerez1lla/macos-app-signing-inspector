@@ -83,6 +83,8 @@ The exact structure may evolve as the project grows, but files should be grouped
 * Do not change signatures, permissions, ownership, quarantine attributes, or security settings.
 * Prefer native Apple APIs when they provide reliable and maintainable results.
 * Use Apple command-line tools when an equivalent practical public API is unavailable.
+* End-user features must not depend on Xcode, Xcode Command Line Tools, developer-license acceptance, or developer commands when a reliable native macOS API exists.
+* Main-executable architecture inspection must use Foundation bundle architecture information and must not invoke `lipo`, `file`, `xcrun`, or `xcodebuild`.
 * Keep command-output parsing separate from process execution.
 * Treat selected files, paths, and command outputs as untrusted input.
 
@@ -90,8 +92,6 @@ Potential system tools may include:
 
 * `/usr/bin/codesign`
 * `/usr/sbin/spctl`
-* `/usr/bin/lipo`
-* `/usr/bin/file`
 
 Use of these tools must be isolated in service code and covered by parsing tests where practical.
 
@@ -193,6 +193,8 @@ Prefer Apple frameworks and small internal implementations when reasonable.
 * Do not imply that generating valid JSON guarantees successful enforcement by an MDM server or device.
 * Do not invent undocumented payload fields or behaviors.
 * Support only documented special tokens. Do not generate company-name wildcard tokens; the current AppleSeed-based exception is the exact `*APPLE*` Team ID token.
+* Third-party developer-wide rules must use an actual Team ID obtained from inspected signing information or deliberately entered by the administrator.
+* Do not derive Team IDs from bundle identifier prefixes, company names, application names, or signing-authority display text.
 * Treat macOS 27 beta schema behavior conservatively and document unverified rule shapes rather than inferring symmetry between allowed and denied rules.
 
 ## Future Integration Boundaries

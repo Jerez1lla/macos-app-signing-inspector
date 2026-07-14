@@ -81,7 +81,7 @@ final class ApplicationSecurityViewModelTests: XCTestCase {
         let appURL = try makeApplicationBundle(named: "Partial")
         let assessment = ApplicationSecurityAssessment(
             gatekeeper: acceptedGatekeeper(),
-            architecture: unavailableArchitecture(status: .toolFailure)
+            architecture: unavailableArchitecture(status: .informationUnavailable)
         )
         let viewModel = makeViewModel(
             pickerResults: [.selected(appURL)],
@@ -92,7 +92,7 @@ final class ApplicationSecurityViewModelTests: XCTestCase {
         await viewModel.selectApplication()
 
         XCTAssertEqual(viewModel.securityAssessment?.gatekeeper.status, .accepted)
-        XCTAssertEqual(viewModel.securityAssessment?.architecture.status, .toolFailure)
+        XCTAssertEqual(viewModel.securityAssessment?.architecture.status, .informationUnavailable)
         XCTAssertEqual(viewModel.securityAssessment?.validationStatus, .partial)
         XCTAssertNil(viewModel.securityErrorMessage)
     }
@@ -247,7 +247,7 @@ final class ApplicationSecurityViewModelTests: XCTestCase {
         viewModel.copyGatekeeperRejectionReason()
         viewModel.copyArchitectureList()
         viewModel.copyRawGatekeeperDiagnostics()
-        viewModel.copyRawArchitectureDiagnostics()
+        viewModel.copyArchitectureInspectionDetails()
 
         XCTAssertEqual(clipboard.copiedValues, [
             "Unnotarized Developer ID",
@@ -313,7 +313,7 @@ final class ApplicationSecurityViewModelTests: XCTestCase {
                 notarizationStatus: .unknown,
                 rawDiagnostics: "spctl failed"
             ),
-            architecture: unavailableArchitecture(status: .toolFailure)
+            architecture: unavailableArchitecture(status: .informationUnavailable)
         )
     }
 
@@ -335,7 +335,7 @@ final class ApplicationSecurityViewModelTests: XCTestCase {
             status: .available,
             architectures: architectures,
             classification: classification,
-            rawDiagnostics: "lipo architectures"
+            rawDiagnostics: "Native architecture details"
         )
     }
 
@@ -344,7 +344,7 @@ final class ApplicationSecurityViewModelTests: XCTestCase {
             status: status,
             architectures: [],
             classification: .unknown,
-            rawDiagnostics: "lipo failed"
+            rawDiagnostics: "Architecture information unavailable"
         )
     }
 

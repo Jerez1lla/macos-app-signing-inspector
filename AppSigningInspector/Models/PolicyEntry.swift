@@ -21,11 +21,38 @@ struct PolicyEntry: Identifiable {
     let displayName: String
     let icon: NSImage?
     let signingAuthority: String?
+    let sourceApplicationName: String?
     let applicationSigningIdentifier: String?
     let applicationTeamIdentifier: String?
     var rule: PolicyRule
     var action: PolicyAction
     var validationState: PolicyEntryValidationState
+
+    init(
+        id: UUID,
+        applicationURL: URL?,
+        displayName: String,
+        icon: NSImage?,
+        signingAuthority: String?,
+        sourceApplicationName: String? = nil,
+        applicationSigningIdentifier: String?,
+        applicationTeamIdentifier: String?,
+        rule: PolicyRule,
+        action: PolicyAction,
+        validationState: PolicyEntryValidationState
+    ) {
+        self.id = id
+        self.applicationURL = applicationURL
+        self.displayName = displayName
+        self.icon = icon
+        self.signingAuthority = signingAuthority
+        self.sourceApplicationName = sourceApplicationName
+        self.applicationSigningIdentifier = applicationSigningIdentifier
+        self.applicationTeamIdentifier = applicationTeamIdentifier
+        self.rule = rule
+        self.action = action
+        self.validationState = validationState
+    }
 
     var isValid: Bool {
         validationState == .valid
@@ -41,6 +68,15 @@ struct PolicyEntry: Identifiable {
         }
         return PolicyBinaryCandidate(rule: rule, action: action)
     }
+}
+
+struct JamfDeveloperTeamRuleCandidate: Identifiable, Equatable {
+    let applicationURL: URL
+    let sourceApplicationName: String
+    let teamIdentifier: String
+    let signingAuthority: String?
+
+    var id: URL { applicationURL }
 }
 
 enum PolicyEntryValidationState: Equatable {

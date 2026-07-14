@@ -1,32 +1,28 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var selectedWorkspace: WorkspaceDestination? = .defaultDestination
-    @StateObject private var inspectorViewModel: ApplicationBrowserViewModel
-    @StateObject private var policyBuilderViewModel: PolicyBuilderViewModel
+    @ObservedObject var workspace: AppWorkspaceController
 
-    init(
-        inspectorViewModel: ApplicationBrowserViewModel = ApplicationBrowserViewModel(),
-        policyBuilderViewModel: PolicyBuilderViewModel = PolicyBuilderViewModel()
-    ) {
-        _inspectorViewModel = StateObject(wrappedValue: inspectorViewModel)
-        _policyBuilderViewModel = StateObject(wrappedValue: policyBuilderViewModel)
+    init(workspace: AppWorkspaceController = AppWorkspaceController()) {
+        self.workspace = workspace
     }
 
     var body: some View {
-        NavigationSplitView {
-            List(WorkspaceDestination.allCases, selection: $selectedWorkspace) { destination in
+        NavigationSplitView(columnVisibility: $workspace.columnVisibility) {
+            List(WorkspaceDestination.allCases, selection: $workspace.selectedWorkspace) { destination in
                 Label(destination.title, systemImage: destination.systemImage)
                     .tag(destination)
+                    .accessibilityLabel(destination.title)
             }
             .listStyle(.sidebar)
             .navigationSplitViewColumnWidth(min: 140, ideal: 165, max: 200)
+            .accessibilityIdentifier("workspace.sidebar")
         } detail: {
-            switch selectedWorkspace ?? .defaultDestination {
+            switch workspace.activeWorkspace {
             case .inspector:
-                InspectorView(viewModel: inspectorViewModel)
+                InspectorView(viewModel: workspace.inspectorViewModel)
             case .policyBuilder:
-                PolicyBuilderView(viewModel: policyBuilderViewModel)
+                PolicyBuilderView(viewModel: workspace.policyBuilderViewModel)
             }
         }
         .frame(minWidth: 620, minHeight: 560)
@@ -79,6 +75,7 @@ private struct InspectorView: View {
                     || viewModel.isValidatingSecurity
             )
             .accessibilityLabel(viewModel.hasSelectedApplication ? "Choose a different application" : "Select an application")
+            .accessibilityIdentifier("inspector.selectApplication")
 
             Spacer()
         }
@@ -129,7 +126,7 @@ private struct InspectorView: View {
             copyGatekeeperRejectionReason: viewModel.copyGatekeeperRejectionReason,
             copyArchitectureList: viewModel.copyArchitectureList,
             copyRawGatekeeperDiagnostics: viewModel.copyRawGatekeeperDiagnostics,
-            copyRawArchitectureDiagnostics: viewModel.copyRawArchitectureDiagnostics
+            copyArchitectureInspectionDetails: viewModel.copyArchitectureInspectionDetails
         )
     }
 }
@@ -156,7 +153,7 @@ private struct SelectedApplicationDetailsView: View {
     let copyGatekeeperRejectionReason: () -> Void
     let copyArchitectureList: () -> Void
     let copyRawGatekeeperDiagnostics: () -> Void
-    let copyRawArchitectureDiagnostics: () -> Void
+    let copyArchitectureInspectionDetails: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -196,7 +193,7 @@ private struct SelectedApplicationDetailsView: View {
                 copyGatekeeperRejectionReason: copyGatekeeperRejectionReason,
                 copyArchitectureList: copyArchitectureList,
                 copyRawGatekeeperDiagnostics: copyRawGatekeeperDiagnostics,
-                copyRawArchitectureDiagnostics: copyRawArchitectureDiagnostics
+                copyArchitectureInspectionDetails: copyArchitectureInspectionDetails
             )
         }
     }
@@ -308,6 +305,7 @@ private struct DesignatedRequirementView: View {
                         Label("Copy Designated Requirement", systemImage: "doc.on.doc")
                     }
                     .buttonStyle(.borderless)
+                    .help("Copy designated requirement")
                 } else {
                     Text(statusText)
                         .font(.callout)
@@ -332,23 +330,26 @@ private struct SignatureStatusView: View {
     let status: CodeSignatureStatus
 
     var body: some View {
-        switch status {
-        case .valid:
-            Label("The application has a valid code signature.", systemImage: "checkmark.seal.fill")
-                .foregroundStyle(.green)
-        case .unsigned:
-            Label(
-                "The application is unsigned. Signing ID and Team ID are unavailable.",
-                systemImage: "exclamationmark.triangle"
-            )
-            .foregroundStyle(.orange)
-        case .invalid:
-            Label(
-                "The application signature is invalid. Review the diagnostic details.",
-                systemImage: "xmark.seal.fill"
-            )
-            .foregroundStyle(.red)
+        Group {
+            switch status {
+            case .valid:
+                Label("The application has a valid code signature.", systemImage: "checkmark.seal.fill")
+                    .foregroundStyle(.green)
+            case .unsigned:
+                Label(
+                    "The application is unsigned. Signing ID and Team ID are unavailable.",
+                    systemImage: "exclamationmark.triangle"
+                )
+                .foregroundStyle(.orange)
+            case .invalid:
+                Label(
+                    "The application signature is invalid. Review the diagnostic details.",
+                    systemImage: "xmark.seal.fill"
+                )
+                .foregroundStyle(.red)
+            }
         }
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -577,8 +578,12 @@ struct CopyableMetadataRow: View {
     @ViewBuilder
     private var copyButton: some View {
         if let copyAction {
-            Button("Copy", action: copyAction)
+            Button(action: copyAction) {
+                Image(systemName: "doc.on.doc")
+            }
                 .buttonStyle(.borderless)
+                .frame(width: 28, height: 28)
+                .help("Copy \(label)")
                 .accessibilityLabel("Copy \(label)")
         }
     }
