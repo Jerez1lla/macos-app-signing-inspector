@@ -8,6 +8,7 @@ struct AppSigningInspectorApp: App {
         WindowGroup {
             ContentView(workspace: workspace)
         }
+        .defaultSize(width: 840, height: 640)
         .commands {
             AppCommands(workspace: workspace)
         }
