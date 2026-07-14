@@ -1,0 +1,52 @@
+name: Bug report
+description: Report a reproducible problem with App Signing Inspector.
+title: "[Bug]: "
+body:
+  - type: dropdown
+    id: version
+    attributes:
+      label: App Signing Inspector version
+      options:
+        - 1.0.0
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: "Example: macOS 27 beta"
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction steps
+      description: Describe a minimal reproducible sequence without uploading proprietary applications.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Sanitized diagnostics
+      description: Remove personal paths, credentials, private signing data, internal URLs, and confidential application details.
+      render: shell
+  - type: checkboxes
+    id: privacy
+    attributes:
+      label: Privacy confirmation
+      options:
+        - label: I confirmed that this report contains no credentials, proprietary application uploads, confidential data, or sensitive signing material.
+          required: true

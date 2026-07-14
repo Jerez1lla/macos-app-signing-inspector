@@ -217,4 +217,4 @@ A story is complete when:
 * Temporary debug code is removed.
 * Changes follow these project rules.
 * The implementation has been manually tested where appropriate.
-* The related Jira work item, or other approved project work item, can be updated with what was implemented and how it was validated.
+* The related approved project work item can be updated with what was implemented and how it was validated.
