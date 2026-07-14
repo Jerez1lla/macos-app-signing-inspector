@@ -1,291 +1,188 @@
 # App Signing Inspector
 
-App Signing Inspector is a native macOS utility with two primary Version 1.0 workflows: inspecting one macOS `.app` bundle and building Declarative Device Management application execution declarations.
+[![Platform: macOS 15+](https://img.shields.io/badge/platform-macOS%2015%2B-black)](https://www.apple.com/macos/)
+[![Language: Swift 6](https://img.shields.io/badge/Swift-6.0-F05138?logo=swift&logoColor=white)](https://www.swift.org/)
+[![UI: SwiftUI](https://img.shields.io/badge/UI-SwiftUI-0D96F6)](https://developer.apple.com/xcode/swiftui/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-The **Inspector** remains a focused, standalone workflow for selecting one application and reviewing its metadata, signing, designated-requirement, Gatekeeper, notarization, and architecture information. The **Policy Builder** is a separate workspace for selecting multiple applications, assigning allow or deny actions, and generating a complete `com.apple.configuration.app.settings` declaration.
+A native macOS utility for inspecting application metadata, code-signing details, security information, and building macOS 27 Declarative Device Management application-execution declarations.
 
-Version 1.0 uses a compact native macOS sidebar implemented with `NavigationSplitView`. **Inspector** is the default destination, and **Policy Builder** is a separate destination; switching workspaces should preserve valid state without combining their view models.
+App Signing Inspector has two independent workspaces. **Inspector** examines one macOS application in depth. **Policy Builder** assembles multi-application Allow and Deny rules and generates a complete `com.apple.configuration.app.settings` declaration.
 
-Version 1.0 supports JSON preview, clipboard copy, and local `.json` export for manual use in Jamf or another MDM platform. Direct Jamf upload is planned only as a future capability and depends on Jamf providing a stable and fully documented Blueprint API.
+## Version and Project Status
 
-## Project Status
+The current version is **1.0.0** (build **1**). Version 1.0.0 has been built, run, and tested on macOS 27 Golden Gate beta with Xcode 27 beta.
 
-App Signing Inspector is preparing for its Version 1.0 macOS validation cycle. The current branch is release-candidate work and is not a published release until it passes validation on macOS.
+Version 1.0.0 is distributed as source code. No prebuilt, signed, or notarized application is included in the current release.
 
-Current version:
+## Screenshots
 
-`1.0.0` (build `1`)
+Release screenshots have not yet been added. Any future screenshots must be reviewed before publication to ensure they contain no private application names, internal paths, credentials, organization information, or personal data.
 
-The Version 1.0 release candidate includes the single-application Inspector and the graphical DDM Policy Builder described below.
-
-## Version 1.0 Workflows
+## Version 1.0 Features
 
 ### Inspector
 
-The Inspector is the default workspace and remains independent of policy creation. Administrators can select one `.app` bundle, review the available inspection results, and copy individual values without starting or modifying a policy.
+* Select one macOS `.app` bundle with the native file picker.
+* Display the application name, icon, bundle identifier, version, and build number.
+* Display bundle and executable paths.
+* Display Signing ID, Team ID, signing authorities, code-signing flags, hardened runtime status, signature timestamp, and Apple-signed or third-party-signed status.
+* Retrieve and display the complete Designated Requirement.
+* Display local Gatekeeper assessment and notarization status where macOS reports it.
+* Display processor architectures and classify the application as Universal, Apple silicon-only, Intel-only, or unknown.
+* Copy important values individually.
+* Preserve available results and display technical diagnostics when part of an inspection is unavailable.
 
 ### Policy Builder
 
-The Policy Builder is a separate workspace for assembling a multi-application allow and deny policy. It supports specific-application rules, developer Team ID allow rules, Apple's documented `*APPLE*` special Team ID rule, optional absolute `PathPrefix` restrictions, and the `AlwaysAllowManagedApps` option. It reuses the same inspection services while maintaining its own selected applications, validation state, generated declaration, and presentation state.
+* Use a separate graphical workspace while preserving Inspector state.
+* Add multiple macOS applications and assign Allow or Deny actions.
+* Build specific-application rules and developer Team-ID-wide Allow rules.
+* Allow Apple binaries with Apple's documented `*APPLE*` Team ID token.
+* Build a Jamf developer-wide Allow rule by inspecting a selected signed Jamf application and confirming its actual Team ID.
+* Enable `AlwaysAllowManagedApps` and add optional absolute `PathPrefix` restrictions.
+* Detect duplicate applications and duplicate signing rules.
+* Warn about potentially redundant broad rules and allow-only policies.
+* Generate Identifier and ServerToken UUID values.
+* Preview, copy, and export the complete declaration JSON.
 
-Generated declarations can be previewed, copied, and exported as local `.json` files. Version 1.0 does not upload declarations directly to Jamf Pro.
+## Inspector Workflow
 
-### Supported Rule Types
+1. Open **Inspector** from the sidebar. It is selected by default.
+2. Choose **Select Application** and select a `.app` bundle.
+3. Review metadata, signing, Designated Requirement, Gatekeeper, notarization, and architecture results.
+4. Copy individual values as needed.
 
-* Specific application rules using Signing ID and Team ID, with Allow or Deny action
-* Developer-wide Allow rules using a Team ID
-* Apple-wide Allow rules using Apple's documented `*APPLE*` Team ID token
-* A Jamf convenience workflow that detects the actual Team ID from a selected signed Jamf application and requires confirmation before adding a developer-wide rule
+Inspection does not require creating or modifying a policy.
+
+## Policy Builder Workflow
+
+1. Open **Policy Builder** from the sidebar.
+2. Add one or more applications or add an approved broad rule.
+3. Assign each specific application an Allow or Deny action.
+4. Review validation, duplicate, redundancy, and allow-only warnings.
+5. Preview the generated `com.apple.configuration.app.settings` declaration.
+6. Copy the JSON or export it to a user-selected local `.json` file.
+
+Version 1.0 does not upload declarations directly to Jamf Pro.
+
+## Supported DDM Rule Types
+
+* Specific application Allow or Deny rules using Signing ID and Team ID
+* Developer-wide Allow rules using an actual signing Team ID
+* Apple-wide Allow rules using the documented `*APPLE*` Team ID token
+* Jamf convenience workflow that verifies a selected signed application's Team ID before creating a developer-wide Allow rule
 * Optional absolute `PathPrefix` restrictions for specific application rules
 * Optional `AlwaysAllowManagedApps`
 
-## Platform Support
+The project does not invent company-name wildcard values. Third-party broad rules use actual Team IDs.
 
-The application itself is intended to support the earliest practical macOS version permitted by the APIs and tools it requires.
+## Requirements
 
-Initial testing is focused on macOS 27 because the DDM binary-management functionality targeted by the project is associated with macOS 27.
+### Application Runtime
 
-The application and the payloads it generates have separate compatibility requirements:
+* A compatible Mac running macOS 15.0 or later
+* macOS 27 for the DDM application-execution declaration behavior targeted by Version 1.0
+* No Xcode or Xcode Command Line Tools for normal inspection and policy generation
+* No Apple developer account where local macOS security policy permits the application to run
+* No network connection for normal inspection and policy generation
 
-* **Application compatibility:** The macOS versions on which App Signing Inspector can run.
-* **Payload compatibility:** The macOS versions that support the generated DDM declaration data.
+### Development
 
-Generating a payload does not guarantee that an MDM server or target device supports or successfully enforces it.
+* A Mac with a compatible version of Xcode
+* Xcode 27 beta for the current macOS 27 beta development and validation environment
+* Swift 6.0 language mode
+* macOS 15.0 deployment target
+* Git for source control
 
-DDM payload models should be reviewed against Apple's official documentation as the macOS 27 beta and related management schemas evolve.
+Native macOS applications require Apple's macOS and Xcode toolchain. This project cannot be compiled on Windows.
 
-## Version 1.0 Scope
+## Installation and Running
 
-Version 1.0 is a focused minimum viable release for inspecting macOS `.app` bundles and building a complete DDM application execution declaration.
+Version 1.0.0 is currently available as source code:
 
-Version 1.0 includes:
+1. Clone or download the repository source.
+2. Open `AppSigningInspector.xcodeproj` in Xcode on a Mac.
+3. Select the `AppSigningInspector` scheme and a compatible Mac destination.
+4. Choose **Product > Run**, or press `Command-R`.
 
-* Preserving a focused single-application Inspector as the default workspace
-* Navigating between Inspector and Policy Builder through a compact native sidebar
-* Opening a dedicated graphical DDM Policy Builder workspace
-* Adding multiple macOS `.app` bundles through a native file picker
-* Automatically inspecting each selected application
-* Retrieving and storing each selected application's name, icon, Signing ID, and Team ID
-* Choosing whether each selected application is allowed or denied
-* Creating developer-wide allow rules using an inspected or manually entered Apple signing Team ID
-* Allowing Apple binaries with the documented `*APPLE*` special Team ID token
-* Optionally restricting specific-application rules with an absolute `PathPrefix`
-* Optionally generating `AlwaysAllowManagedApps: true`
-* Displaying selected applications in a clear editable list
-* Changing an application between allowed and denied
-* Removing an application from the policy
-* Detecting duplicate applications or duplicate signing entries
-* Warning when a selected application is unsigned or missing a Signing ID or Team ID
-* Generating appropriate `AllowedBinaries` and `DeniedBinaries` arrays
-* Generating a complete `com.apple.configuration.app.settings` declaration
-* Generating valid UUID values for the declaration `Identifier` and `ServerToken`
-* Previewing the generated JSON
-* Copying the complete JSON to the clipboard
-* Exporting the generated JSON to a local `.json` file
-* Validating required values before allowing export
-* Displaying a prominent warning when an allow-only policy could block management agents, security tools, background services, or other required software
-* Handling unsigned, malformed, and unsupported applications gracefully
+A prebuilt signed application may be provided in a later release. Do not disable Gatekeeper or bypass macOS security protections to run the project.
 
-The interface must not automatically add management or security applications without the user's knowledge.
-
-Version 1.0 does not include:
-
-* Standalone executable inspection
-* Recursive embedded-binary inspection
-* Helper, framework, or nested application inspection
-* Drag-and-drop selection
-* Batch folder scanning
-* Inspection history
-* Existing DDM declaration import or validation
-* Jamf API integration
-* Network-based Team ID or certificate verification
-
-## Future Scope
-
-Planned future releases include:
-
-* **Version 1.1:** Policy-builder refinements based on administrator feedback
-* **Version 1.2:** Drag-and-drop application selection and export improvements
-* **Version 2.0:** Standalone and recursively embedded binary inspection
-
-These versions are planning guidance and may change based on development findings.
-
-Future Jamf Pro integration may allow direct upload of generated declarations when Jamf provides a stable and fully documented public API for Blueprint and custom declaration management. Until that API is available and verified, Version 1.0 supports JSON copy and export for manual use in Jamf.
-
-## Privacy
-
-Application inspection is performed locally.
-
-The project must not transmit application paths, signing information, certificate details, Team IDs, or other inspected metadata unless a future networked feature is explicitly designed, documented, and approved.
-
-Architecture inspection uses Foundation's native bundle APIs and does not load or launch the selected application. End users do not need Xcode, Xcode Command Line Tools, license acceptance, or Terminal access for architecture inspection.
-
-## Prerequisites
-
-Expected prerequisites include:
-
-* A Mac capable of running the selected Xcode version
-* Xcode 27 beta for the current macOS 27 validation cycle
-* Swift 6 language mode, as configured by the project
-* macOS 15.0 or later for the initial deployment target
-* Git, recommended for source control
-
-The application cannot be compiled on Windows because native macOS applications require Apple's macOS and Xcode toolchain.
-
-These developer prerequisites apply only to building the project. A distributed application does not require Xcode or Xcode Command Line Tools for normal inspection or policy-building workflows.
-
-## Repository Layout
-
-The expected project layout is:
-
-```text
-AppSigningInspector/
-|-- README.md
-|-- PROJECT_RULES.md
-|-- VISION.md
-|-- LICENSE
-|-- docs/
-|   `-- STORY_6_IMPLEMENTATION_PLAN.md
-|-- AppSigningInspector.xcodeproj
-|-- AppSigningInspector/
-|   |-- AppSigningInspectorApp.swift
-|   |-- Models/
-|   |-- Views/
-|   |-- ViewModels/
-|   |-- Services/
-|   |-- Protocols/
-|   |-- Utilities/
-|   `-- Resources/
-`-- AppSigningInspectorTests/
-    `-- Fixtures/
-```
-
-The Xcode project is located at:
-
-`AppSigningInspector.xcodeproj`
-
-The final structure may change as the project grows.
-
-## Building the Application
+## Building From Source
 
 1. Open `AppSigningInspector.xcodeproj` in Xcode.
-2. Select the App Signing Inspector scheme.
+2. Select the `AppSigningInspector` scheme.
 3. Select a compatible Mac destination.
 4. Choose **Product > Build**, or press `Command-B`.
 
-The initial project uses manual local code signing for development. If Xcode prompts for signing changes on a Mac, review the signing settings before accepting generated changes.
-
-## Running the Application
-
-1. Open the project in Xcode.
-2. Select the App Signing Inspector scheme.
-3. Choose **Product > Run**, or press `Command-R`.
-4. Use the sidebar to choose **Inspector** or **Policy Builder**.
-5. In Inspector, use **Select Application** to inspect one macOS `.app` bundle.
-6. In Policy Builder, add applications or developer rules, review policy options, then preview, copy, or export the generated JSON.
+The project uses manual local signing for development. Review any signing changes proposed by Xcode before accepting them.
 
 ## Running Tests
 
-1. Open the project in Xcode.
-2. Select the App Signing Inspector scheme.
-3. Select a compatible Mac destination.
-4. Choose **Product > Test**, or press `Command-U`.
+In Xcode, select the `AppSigningInspector` scheme and choose **Product > Test**, or press `Command-U`.
 
-From Terminal on a Mac with Xcode installed, the project can also be tested with:
+From Terminal on a Mac with Xcode installed:
 
 ```sh
 xcodebuild test -project AppSigningInspector.xcodeproj -scheme AppSigningInspector -destination 'platform=macOS'
 ```
 
-Current test targets:
+The `AppSigningInspectorTests` target contains deterministic unit tests for metadata, signing, security assessment, architecture inspection, policy validation, navigation state, and DDM JSON generation.
 
-* `AppSigningInspectorTests`
+## Privacy and Security
 
-Future tests should be separated into:
+* Inspection and policy generation occur locally.
+* Application metadata and generated declarations are not uploaded.
+* No analytics or telemetry are included.
+* No Jamf credentials are requested or stored.
+* No network connection is required for normal inspection and policy generation.
+* Inspected applications are not modified or launched.
+* The app does not change signatures, permissions, ownership, quarantine attributes, or security settings.
+* Selected paths and command output are treated as untrusted input.
 
-* Deterministic unit tests
-* Parsing and payload-generation tests
-* Platform integration tests
-* UI tests only where valuable
-
-Integration tests that rely on live macOS tools or local files should be clearly identified.
-
-## Project Settings
-
-Current release-candidate project settings:
-
-* Application name: App Signing Inspector
-* Product/module name: `AppSigningInspector`
-* Swift language version: Swift 6.0
-* Minimum deployment target: macOS 15.0
-* Marketing version: `1.0.0`
-* Build number: `1`
-* Application target: `AppSigningInspector`
-* Unit test target: `AppSigningInspectorTests`
-
-## Windows Development Note
-
-The project files may be edited on Windows, but the application must be opened, built, run, and tested on a Mac with Xcode.
-
-On Windows, validation is limited to static inspection of the project files and source layout.
-
-## System Tools
-
-The application may use Apple-provided command-line tools when equivalent public APIs are unavailable or impractical.
-
-Potential tools include:
-
-* `codesign`
-* `spctl`
-
-Shell and platform interactions must be isolated behind services. SwiftUI views must not execute these tools directly.
-
-Code-signature inspection launches `/usr/bin/codesign` directly through a process-running service. Process execution, output parsing, and view-model presentation are separate so command output can be tested without invoking live system tools.
-
-Designated requirements are retrieved with `codesign -dr -` and shown without reconstructing or simplifying the requirement expression. Failure to retrieve a designated requirement does not discard other signature information.
-
-Security validation launches `/usr/sbin/spctl` for a local Gatekeeper assessment. Main-executable architecture inspection is self-contained and reads `Bundle(url:)`, `executableURL`, and `executableArchitectures` through a dedicated native service. Gatekeeper and architecture checks remain independent so partial results are preserved when one check is unavailable.
-
-Gatekeeper acceptance reflects the local Mac's current security policy and is not authoritative remote verification by Apple. The application reports notarization only when the local assessment source explicitly supports that conclusion; otherwise it uses an unconfirmed or unknown status.
-
-## Development Guidelines
-
-Contributors must review:
-
-* `VISION.md` for the long-term product direction, intended audience, guiding principles, and future capabilities
-* `PROJECT_RULES.md` for enforceable architecture, testing, security, privacy, and implementation requirements
-* `docs/STORY_6_IMPLEMENTATION_PLAN.md` for the approved Story 6 workspace and policy-builder implementation plan
-
-## DDM Documentation
-
-Generated declaration data must track Apple's official Declarative Device Management schema and documentation.
-
-Because the project is initially being developed against beta operating-system functionality, payload structure and behavior may change before the final macOS 27 release.
-
-The advanced binary-rule schema is based on macOS 27 AppleSeed for IT beta test documentation. The builder does not invent company wildcard tokens: only the documented `*APPLE*` special token is supported, and third-party developer rules use an actual Team ID.
-
-Signing ID identifies a signed application or binary identity. Team ID identifies its signing developer or organization, so a Team-ID-only rule is broader than a specific rule containing both Signing ID and Team ID. Bundle identifier prefixes, company names, application names, and signing-authority labels are not Team IDs and are never converted into them.
-
-The **Allow All Jamf Binaries** convenience workflow asks the administrator to select an installed signed Jamf application, inspects its code signature, displays the detected Team ID and signing context, and requires confirmation before adding a Team-ID-only Allow rule. It does not infer identity from the application name and never generates an undocumented `*jamf*` wildcard.
-
-Team-ID-only `DeniedBinaries` objects are not generated because that exact object shape has not yet been verified in sufficiently explicit schema documentation. Developer-wide rules are therefore Allow-only until Apple documents and validates the denied form.
-
-Policy drafts are not persisted in Version 1.0, so this model extension requires no stored-data migration. Existing specific application rules retain their previous JSON shape unless an administrator edits their scope or enables `PathPrefix`.
-
-Any payload-schema assumptions should be documented in the source code and updated when Apple publishes revised guidance.
+Security issues should be handled according to [SECURITY.md](SECURITY.md).
 
 ## Known Limitations
 
-* The macOS 27 DDM schema is based on beta documentation and may change.
+* Inspection currently focuses on `.app` bundles.
+* Standalone executable inspection is not included.
+* Recursive embedded-binary, helper, framework, and nested-app inspection are not included.
+* Existing declarations cannot be imported or validated.
+* Policy and inspection history are not persisted.
+* Batch folder scanning is not included.
 * Direct Jamf Blueprint upload is not included.
-* Standalone binary inspection is not included.
-* Recursive embedded-binary inspection is not included.
-* Existing declaration import is not included.
-* Policy drafts and inspection history are not persisted.
-* Local Gatekeeper assessment reflects the current Mac and is not authoritative remote Apple verification.
+* Direct Jamf integration depends on a stable and documented public Blueprint API.
+* Local Gatekeeper results are not authoritative remote Apple verification.
+* The documented `*APPLE*` value is treated as a specific schema token.
+* Third-party broad rules use actual Team IDs rather than invented company-name wildcard values.
 
-See `RELEASE_NOTES.md` for the Version 1.0.0 release-candidate summary and `docs/VERSION_1_MACOS_VALIDATION.md` for the required macOS validation checklist.
+## macOS 27 Beta Schema Warning
+
+Version 1.0 targets DDM application-execution behavior documented for macOS 27 beta. Declaration names, accepted values, and enforcement behavior may change before Apple publishes final documentation.
+
+Generating valid JSON does not guarantee that an MDM server or target device supports or enforces the declaration. Administrators should compare generated declarations with current Apple documentation and test them in a controlled environment before deployment.
+
+App Signing Inspector is not endorsed by Apple or Jamf.
+
+## Roadmap
+
+Potential future directions include:
+
+* Standalone binary inspection
+* Embedded helper and framework inspection
+* Declaration import and validation
+* Policy and inspection history
+* Batch inspection
+* Comparison between application versions
+* Jamf Blueprint integration if a stable public API becomes available
+* Signed and notarized downloadable releases
+
+Roadmap items are planning guidance and have no promised dates.
+
+## Contributing
+
+Contributions and reproducible issue reports are welcome. Review [CONTRIBUTING.md](CONTRIBUTING.md), [PROJECT_RULES.md](PROJECT_RULES.md), and [VISION.md](VISION.md) before proposing changes.
 
 ## License
 
-App Signing Inspector is available under the MIT License. See `LICENSE`.
+App Signing Inspector is available under the [MIT License](LICENSE).
