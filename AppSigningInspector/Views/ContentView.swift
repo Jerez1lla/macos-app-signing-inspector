@@ -126,7 +126,7 @@ private struct InspectorView: View {
             copyGatekeeperRejectionReason: viewModel.copyGatekeeperRejectionReason,
             copyArchitectureList: viewModel.copyArchitectureList,
             copyRawGatekeeperDiagnostics: viewModel.copyRawGatekeeperDiagnostics,
-            copyRawArchitectureDiagnostics: viewModel.copyRawArchitectureDiagnostics
+            copyArchitectureInspectionDetails: viewModel.copyArchitectureInspectionDetails
         )
     }
 }
@@ -153,7 +153,7 @@ private struct SelectedApplicationDetailsView: View {
     let copyGatekeeperRejectionReason: () -> Void
     let copyArchitectureList: () -> Void
     let copyRawGatekeeperDiagnostics: () -> Void
-    let copyRawArchitectureDiagnostics: () -> Void
+    let copyArchitectureInspectionDetails: () -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -193,7 +193,7 @@ private struct SelectedApplicationDetailsView: View {
                 copyGatekeeperRejectionReason: copyGatekeeperRejectionReason,
                 copyArchitectureList: copyArchitectureList,
                 copyRawGatekeeperDiagnostics: copyRawGatekeeperDiagnostics,
-                copyRawArchitectureDiagnostics: copyRawArchitectureDiagnostics
+                copyArchitectureInspectionDetails: copyArchitectureInspectionDetails
             )
         }
     }

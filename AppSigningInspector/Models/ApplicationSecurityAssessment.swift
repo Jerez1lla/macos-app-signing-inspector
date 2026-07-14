@@ -100,33 +100,21 @@ enum NotarizationStatus: Equatable, Sendable {
 
 enum ArchitectureInspectionStatus: Equatable, Sendable {
     case available
-    case executablePathUnavailable
-    case executableMissing
-    case unsupportedFormat
-    case emptyOutput
-    case malformedOutput
-    case toolUnavailable
-    case toolFailure
+    case informationUnavailable
+    case bundleUnavailable
+    case unsupportedArchitecture
     case applicationUnavailable
 
     var displayValue: String {
         switch self {
         case .available:
             return "Available"
-        case .executablePathUnavailable:
-            return "Executable path unavailable"
-        case .executableMissing:
-            return "Executable file missing"
-        case .unsupportedFormat:
-            return "Unsupported executable format"
-        case .emptyOutput:
-            return "No architecture output"
-        case .malformedOutput:
-            return "Architecture output could not be parsed"
-        case .toolUnavailable:
-            return "Architecture tool unavailable"
-        case .toolFailure:
-            return "Tool execution failed"
+        case .informationUnavailable:
+            return "Architecture information unavailable"
+        case .bundleUnavailable:
+            return "Application bundle could not be inspected"
+        case .unsupportedArchitecture:
+            return "Unknown or unsupported architecture"
         case .applicationUnavailable:
             return "Application unavailable"
         }
