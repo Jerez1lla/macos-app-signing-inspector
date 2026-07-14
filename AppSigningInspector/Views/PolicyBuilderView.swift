@@ -205,7 +205,7 @@ private struct PolicyOptionsView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Toggle(title, isOn: isOn)
-                .accessibilityHelp(accessibilityHelp ?? visibleDescription ?? "Changes this policy option.")
+                .help(accessibilityHelp ?? visibleDescription ?? "Changes this policy option.")
             if let visibleDescription {
                 Text(visibleDescription)
                     .font(.caption)
