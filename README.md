@@ -10,15 +10,13 @@ Version 1.0 supports JSON preview, clipboard copy, and local `.json` export for 
 
 ## Project Status
 
-App Signing Inspector is currently in early development.
+App Signing Inspector is preparing for its Version 1.0 macOS validation cycle. The current branch is release-candidate work and is not a published release until it passes validation on macOS.
 
 Current version:
 
-`0.2.0`
+`1.0.0` (build `1`)
 
-The initial development focus is the Version 1.0 application-inspection and DDM policy-builder workflow.
-
-The current inspection workflow displays application metadata, code-signature details, local Gatekeeper assessment results, conservative notarization status, and main-executable architecture support where available.
+The Version 1.0 release candidate includes the single-application Inspector and the graphical DDM Policy Builder described below.
 
 ## Version 1.0 Workflows
 
@@ -29,6 +27,17 @@ The Inspector is the default workspace and remains independent of policy creatio
 ### Policy Builder
 
 The Policy Builder is a separate workspace for assembling a multi-application allow and deny policy. It supports specific-application rules, developer Team ID allow rules, Apple's documented `*APPLE*` special Team ID rule, optional absolute `PathPrefix` restrictions, and the `AlwaysAllowManagedApps` option. It reuses the same inspection services while maintaining its own selected applications, validation state, generated declaration, and presentation state.
+
+Generated declarations can be previewed, copied, and exported as local `.json` files. Version 1.0 does not upload declarations directly to Jamf Pro.
+
+### Supported Rule Types
+
+* Specific application rules using Signing ID and Team ID, with Allow or Deny action
+* Developer-wide Allow rules using a Team ID
+* Apple-wide Allow rules using Apple's documented `*APPLE*` Team ID token
+* A Jamf convenience workflow that detects the actual Team ID from a selected signed Jamf application and requires confirmation before adding a developer-wide rule
+* Optional absolute `PathPrefix` restrictions for specific application rules
+* Optional `AlwaysAllowManagedApps`
 
 ## Platform Support
 
@@ -109,17 +118,21 @@ Application inspection is performed locally.
 
 The project must not transmit application paths, signing information, certificate details, Team IDs, or other inspected metadata unless a future networked feature is explicitly designed, documented, and approved.
 
+Architecture inspection uses Foundation's native bundle APIs and does not load or launch the selected application. End users do not need Xcode, Xcode Command Line Tools, license acceptance, or Terminal access for architecture inspection.
+
 ## Prerequisites
 
 Expected prerequisites include:
 
 * A Mac capable of running the selected Xcode version
-* Xcode 16.0 or later
-* Swift 6.0, as provided by the selected Xcode toolchain
+* Xcode 27 beta for the current macOS 27 validation cycle
+* Swift 6 language mode, as configured by the project
 * macOS 15.0 or later for the initial deployment target
 * Git, recommended for source control
 
 The application cannot be compiled on Windows because native macOS applications require Apple's macOS and Xcode toolchain.
+
+These developer prerequisites apply only to building the project. A distributed application does not require Xcode or Xcode Command Line Tools for normal inspection or policy-building workflows.
 
 ## Repository Layout
 
@@ -167,8 +180,9 @@ The initial project uses manual local code signing for development. If Xcode pro
 1. Open the project in Xcode.
 2. Select the App Signing Inspector scheme.
 3. Choose **Product > Run**, or press `Command-R`.
-4. Use **Select Application** to choose one macOS `.app` bundle.
-5. Confirm the selected application's metadata and code-signature details are displayed where available.
+4. Use the sidebar to choose **Inspector** or **Policy Builder**.
+5. In Inspector, use **Select Application** to inspect one macOS `.app` bundle.
+6. In Policy Builder, add applications or developer rules, review policy options, then preview, copy, or export the generated JSON.
 
 ## Running Tests
 
@@ -198,13 +212,13 @@ Integration tests that rely on live macOS tools or local files should be clearly
 
 ## Project Settings
 
-Current initial project settings:
+Current release-candidate project settings:
 
 * Application name: App Signing Inspector
 * Product/module name: `AppSigningInspector`
 * Swift language version: Swift 6.0
 * Minimum deployment target: macOS 15.0
-* Marketing version: `0.1.0`
+* Marketing version: `1.0.0`
 * Build number: `1`
 * Application target: `AppSigningInspector`
 * Unit test target: `AppSigningInspectorTests`
@@ -223,8 +237,6 @@ Potential tools include:
 
 * `codesign`
 * `spctl`
-* `lipo`
-* `file`
 
 Shell and platform interactions must be isolated behind services. SwiftUI views must not execute these tools directly.
 
@@ -232,7 +244,7 @@ Code-signature inspection launches `/usr/bin/codesign` directly through a proces
 
 Designated requirements are retrieved with `codesign -dr -` and shown without reconstructing or simplifying the requirement expression. Failure to retrieve a designated requirement does not discard other signature information.
 
-Security validation launches `/usr/sbin/spctl` for a local Gatekeeper assessment and `/usr/bin/lipo -archs` for the selected application's main executable. These checks reuse the process-running service, use independently testable parsers, and preserve partial results when one check fails.
+Security validation launches `/usr/sbin/spctl` for a local Gatekeeper assessment. Main-executable architecture inspection is self-contained and reads `Bundle(url:)`, `executableURL`, and `executableArchitectures` through a dedicated native service. Gatekeeper and architecture checks remain independent so partial results are preserved when one check is unavailable.
 
 Gatekeeper acceptance reflects the local Mac's current security policy and is not authoritative remote verification by Apple. The application reports notarization only when the local assessment source explicitly supports that conclusion; otherwise it uses an unconfirmed or unknown status.
 
@@ -252,12 +264,28 @@ Because the project is initially being developed against beta operating-system f
 
 The advanced binary-rule schema is based on macOS 27 AppleSeed for IT beta test documentation. The builder does not invent company wildcard tokens: only the documented `*APPLE*` special token is supported, and third-party developer rules use an actual Team ID.
 
+Signing ID identifies a signed application or binary identity. Team ID identifies its signing developer or organization, so a Team-ID-only rule is broader than a specific rule containing both Signing ID and Team ID. Bundle identifier prefixes, company names, application names, and signing-authority labels are not Team IDs and are never converted into them.
+
+The **Allow All Jamf Binaries** convenience workflow asks the administrator to select an installed signed Jamf application, inspects its code signature, displays the detected Team ID and signing context, and requires confirmation before adding a Team-ID-only Allow rule. It does not infer identity from the application name and never generates an undocumented `*jamf*` wildcard.
+
 Team-ID-only `DeniedBinaries` objects are not generated because that exact object shape has not yet been verified in sufficiently explicit schema documentation. Developer-wide rules are therefore Allow-only until Apple documents and validates the denied form.
 
 Policy drafts are not persisted in Version 1.0, so this model extension requires no stored-data migration. Existing specific application rules retain their previous JSON shape unless an administrator edits their scope or enables `PathPrefix`.
 
 Any payload-schema assumptions should be documented in the source code and updated when Apple publishes revised guidance.
 
+## Known Limitations
+
+* The macOS 27 DDM schema is based on beta documentation and may change.
+* Direct Jamf Blueprint upload is not included.
+* Standalone binary inspection is not included.
+* Recursive embedded-binary inspection is not included.
+* Existing declaration import is not included.
+* Policy drafts and inspection history are not persisted.
+* Local Gatekeeper assessment reflects the current Mac and is not authoritative remote Apple verification.
+
+See `RELEASE_NOTES.md` for the Version 1.0.0 release-candidate summary and `docs/VERSION_1_MACOS_VALIDATION.md` for the required macOS validation checklist.
+
 ## License
 
-The planned license is MIT. The final license file should be added during initial project setup.
+App Signing Inspector is available under the MIT License. See `LICENSE`.

@@ -9,13 +9,13 @@ protocol GatekeeperAssessing: Sendable {
 }
 
 protocol ArchitectureInspecting: Sendable {
-    func inspect(applicationAt applicationURL: URL, executablePath: String?) async -> ArchitectureAssessment
+    func inspect(applicationAt applicationURL: URL) async -> ArchitectureAssessment
 }
 
 protocol GatekeeperAssessmentParsing: Sendable {
     func parse(_ result: ProcessResult) -> GatekeeperAssessment
 }
 
-protocol ArchitectureAssessmentParsing: Sendable {
-    func parse(_ result: ProcessResult) -> ArchitectureAssessment
+protocol NativeBundleArchitectureProviding: Sendable {
+    func architectureSnapshot(for applicationURL: URL) throws -> NativeBundleArchitectureSnapshot
 }

@@ -37,10 +37,10 @@
 		11111111111111111111111C /* ApplicationSecurityAssessment.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102A /* ApplicationSecurityAssessment.swift */; };
 		11111111111111111111111D /* SecurityAssessing.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102B /* SecurityAssessing.swift */; };
 		11111111111111111111111E /* GatekeeperAssessmentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102C /* GatekeeperAssessmentParser.swift */; };
-		11111111111111111111111F /* ArchitectureAssessmentParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102D /* ArchitectureAssessmentParser.swift */; };
+		11111111111111111111111F /* NativeArchitectureInspector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102D /* NativeArchitectureInspector.swift */; };
 		111111111111111111111120 /* ApplicationSecurityAssessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102E /* ApplicationSecurityAssessor.swift */; };
 		111111111111111111111121 /* GatekeeperAssessmentParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11111111111111111111102F /* GatekeeperAssessmentParserTests.swift */; };
-		111111111111111111111122 /* ArchitectureAssessmentParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111030 /* ArchitectureAssessmentParserTests.swift */; };
+		111111111111111111111122 /* NativeArchitectureInspectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111030 /* NativeArchitectureInspectorTests.swift */; };
 		111111111111111111111123 /* ApplicationSecurityViewModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111031 /* ApplicationSecurityViewModelTests.swift */; };
 		111111111111111111111124 /* SecuritySectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111032 /* SecuritySectionView.swift */; };
 		111111111111111111111125 /* DDMApplicationSettingsDeclaration.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111033 /* DDMApplicationSettingsDeclaration.swift */; };
@@ -60,6 +60,11 @@
 		111111111111111111111133 /* PolicyRuleValidator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111041 /* PolicyRuleValidator.swift */; };
 		111111111111111111111134 /* PolicyRuleEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111042 /* PolicyRuleEditorView.swift */; };
 		111111111111111111111135 /* PolicyRuleValidatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111043 /* PolicyRuleValidatorTests.swift */; };
+		111111111111111111111136 /* AppVersionInfo.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111044 /* AppVersionInfo.swift */; };
+		111111111111111111111137 /* AppWorkspaceController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111045 /* AppWorkspaceController.swift */; };
+		111111111111111111111138 /* AboutView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111046 /* AboutView.swift */; };
+		111111111111111111111139 /* AppCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111047 /* AppCommands.swift */; };
+		11111111111111111111113A /* ReleaseReadinessTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111111111111111111111048 /* ReleaseReadinessTests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -105,10 +110,10 @@
 		11111111111111111111102A /* ApplicationSecurityAssessment.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSecurityAssessment.swift; sourceTree = "<group>"; };
 		11111111111111111111102B /* SecurityAssessing.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecurityAssessing.swift; sourceTree = "<group>"; };
 		11111111111111111111102C /* GatekeeperAssessmentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatekeeperAssessmentParser.swift; sourceTree = "<group>"; };
-		11111111111111111111102D /* ArchitectureAssessmentParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchitectureAssessmentParser.swift; sourceTree = "<group>"; };
+		11111111111111111111102D /* NativeArchitectureInspector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeArchitectureInspector.swift; sourceTree = "<group>"; };
 		11111111111111111111102E /* ApplicationSecurityAssessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSecurityAssessor.swift; sourceTree = "<group>"; };
 		11111111111111111111102F /* GatekeeperAssessmentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GatekeeperAssessmentParserTests.swift; sourceTree = "<group>"; };
-		111111111111111111111030 /* ArchitectureAssessmentParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchitectureAssessmentParserTests.swift; sourceTree = "<group>"; };
+		111111111111111111111030 /* NativeArchitectureInspectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NativeArchitectureInspectorTests.swift; sourceTree = "<group>"; };
 		111111111111111111111031 /* ApplicationSecurityViewModelTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ApplicationSecurityViewModelTests.swift; sourceTree = "<group>"; };
 		111111111111111111111032 /* SecuritySectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecuritySectionView.swift; sourceTree = "<group>"; };
 		111111111111111111111033 /* DDMApplicationSettingsDeclaration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DDMApplicationSettingsDeclaration.swift; sourceTree = "<group>"; };
@@ -128,6 +133,11 @@
 		111111111111111111111041 /* PolicyRuleValidator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRuleValidator.swift; sourceTree = "<group>"; };
 		111111111111111111111042 /* PolicyRuleEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRuleEditorView.swift; sourceTree = "<group>"; };
 		111111111111111111111043 /* PolicyRuleValidatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PolicyRuleValidatorTests.swift; sourceTree = "<group>"; };
+		111111111111111111111044 /* AppVersionInfo.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppVersionInfo.swift; sourceTree = "<group>"; };
+		111111111111111111111045 /* AppWorkspaceController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppWorkspaceController.swift; sourceTree = "<group>"; };
+		111111111111111111111046 /* AboutView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutView.swift; sourceTree = "<group>"; };
+		111111111111111111111047 /* AppCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCommands.swift; sourceTree = "<group>"; };
+		111111111111111111111048 /* ReleaseReadinessTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReleaseReadinessTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -184,6 +194,7 @@
 		111111111111111111111610 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				111111111111111111111044 /* AppVersionInfo.swift */,
 				111111111111111111111012 /* ApplicationMetadata.swift */,
 				11111111111111111111102A /* ApplicationSecurityAssessment.swift */,
 				111111111111111111111018 /* CodeSignatureInfo.swift */,
@@ -200,6 +211,8 @@
 		111111111111111111111611 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				111111111111111111111046 /* AboutView.swift */,
+				111111111111111111111047 /* AppCommands.swift */,
 				111111111111111111111002 /* ContentView.swift */,
 				11111111111111111111103C /* PolicyBuilderView.swift */,
 				111111111111111111111042 /* PolicyRuleEditorView.swift */,
@@ -211,6 +224,7 @@
 		111111111111111111111612 /* ViewModels */ = {
 			isa = PBXGroup;
 			children = (
+				111111111111111111111045 /* AppWorkspaceController.swift */,
 				111111111111111111111011 /* ApplicationBrowserViewModel.swift */,
 				11111111111111111111103B /* PolicyBuilderViewModel.swift */,
 			);
@@ -220,7 +234,7 @@
 		111111111111111111111613 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				11111111111111111111102D /* ArchitectureAssessmentParser.swift */,
+				11111111111111111111102D /* NativeArchitectureInspector.swift */,
 				111111111111111111111024 /* ApplicationCodeSignatureInspector.swift */,
 				111111111111111111111015 /* ApplicationMetadataInspector.swift */,
 				111111111111111111111010 /* ApplicationPickerService.swift */,
@@ -277,13 +291,14 @@
 				111111111111111111111004 /* AppSigningInspectorTests.swift */,
 				111111111111111111111026 /* ApplicationCodeSignatureViewModelTests.swift */,
 				111111111111111111111031 /* ApplicationSecurityViewModelTests.swift */,
-				111111111111111111111030 /* ArchitectureAssessmentParserTests.swift */,
+				111111111111111111111030 /* NativeArchitectureInspectorTests.swift */,
 				111111111111111111111025 /* CodeSignatureOutputParserTests.swift */,
 				11111111111111111111103D /* DDMDeclarationGeneratorTests.swift */,
 				111111111111111111111029 /* DesignatedRequirementOutputParserTests.swift */,
 				11111111111111111111102F /* GatekeeperAssessmentParserTests.swift */,
 				11111111111111111111103E /* PolicyBuilderViewModelTests.swift */,
 				111111111111111111111043 /* PolicyRuleValidatorTests.swift */,
+				111111111111111111111048 /* ReleaseReadinessTests.swift */,
 				11111111111111111111103F /* WorkspaceNavigationTests.swift */,
 				111111111111111111111701 /* Fixtures */,
 			);
@@ -396,7 +411,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				11111111111111111111111F /* ArchitectureAssessmentParser.swift in Sources */,
+				111111111111111111111138 /* AboutView.swift in Sources */,
+				111111111111111111111139 /* AppCommands.swift in Sources */,
+				111111111111111111111136 /* AppVersionInfo.swift in Sources */,
+				111111111111111111111137 /* AppWorkspaceController.swift in Sources */,
+				11111111111111111111111F /* NativeArchitectureInspector.swift in Sources */,
 				111111111111111111111116 /* ApplicationCodeSignatureInspector.swift in Sources */,
 				111111111111111111111101 /* AppSigningInspectorApp.swift in Sources */,
 				111111111111111111111109 /* ApplicationBrowserViewModel.swift in Sources */,
@@ -447,13 +466,14 @@
 				111111111111111111111104 /* AppSigningInspectorTests.swift in Sources */,
 				111111111111111111111118 /* ApplicationCodeSignatureViewModelTests.swift in Sources */,
 				111111111111111111111123 /* ApplicationSecurityViewModelTests.swift in Sources */,
-				111111111111111111111122 /* ArchitectureAssessmentParserTests.swift in Sources */,
+				111111111111111111111122 /* NativeArchitectureInspectorTests.swift in Sources */,
 				111111111111111111111117 /* CodeSignatureOutputParserTests.swift in Sources */,
 				11111111111111111111112F /* DDMDeclarationGeneratorTests.swift in Sources */,
 				11111111111111111111111B /* DesignatedRequirementOutputParserTests.swift in Sources */,
 				111111111111111111111121 /* GatekeeperAssessmentParserTests.swift in Sources */,
 				111111111111111111111130 /* PolicyBuilderViewModelTests.swift in Sources */,
 				111111111111111111111135 /* PolicyRuleValidatorTests.swift in Sources */,
+				11111111111111111111113A /* ReleaseReadinessTests.swift in Sources */,
 				111111111111111111111131 /* WorkspaceNavigationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -595,6 +615,7 @@
 		111111111111111111111903 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -604,13 +625,13 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "App Signing Inspector";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 App Signing Inspector contributors";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright 2026 Jerez1lla";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.appsigninginspector.AppSigningInspector;
 				PRODUCT_MODULE_NAME = AppSigningInspector;
 				PRODUCT_NAME = "App Signing Inspector";
@@ -621,6 +642,7 @@
 		111111111111111111111904 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "-";
 				CODE_SIGN_STYLE = Manual;
 				COMBINE_HIDPI_IMAGES = YES;
@@ -630,13 +652,13 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "App Signing Inspector";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright © 2026 App Signing Inspector contributors";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "Copyright 2026 Jerez1lla";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.appsigninginspector.AppSigningInspector;
 				PRODUCT_MODULE_NAME = AppSigningInspector;
 				PRODUCT_NAME = "App Signing Inspector";
@@ -659,7 +681,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.appsigninginspector.AppSigningInspectorTests;
 				PRODUCT_MODULE_NAME = AppSigningInspectorTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -683,7 +705,7 @@
 					"@loader_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 15.0;
-				MARKETING_VERSION = 0.1.0;
+				MARKETING_VERSION = 1.0.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.appsigninginspector.AppSigningInspectorTests;
 				PRODUCT_MODULE_NAME = AppSigningInspectorTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";

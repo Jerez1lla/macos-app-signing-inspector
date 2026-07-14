@@ -18,7 +18,11 @@ struct PolicyBuilderView: View {
                     allowAllAppleBinaries: Binding(
                         get: { viewModel.allowsAllAppleBinaries },
                         set: viewModel.setAllowAllAppleBinaries
-                    )
+                    ),
+                    isBusy: viewModel.isPerformingPolicyOperation,
+                    addJamfRule: {
+                        Task { await viewModel.selectJamfDeveloperApplication() }
+                    }
                 )
 
                 PolicySafetyWarningsView(warnings: viewModel.safetyWarnings)
@@ -58,6 +62,20 @@ struct PolicyBuilderView: View {
                 viewModel.addDeveloperTeamRule(teamIdentifier: teamIdentifier)
             }
         }
+        .sheet(item: Binding(
+            get: { viewModel.pendingJamfTeamRule },
+            set: { candidate in
+                if candidate == nil {
+                    viewModel.cancelJamfDeveloperTeamRule()
+                }
+            }
+        )) { candidate in
+            JamfDeveloperRuleConfirmationView(
+                candidate: candidate,
+                confirm: viewModel.confirmJamfDeveloperTeamRule,
+                cancel: viewModel.cancelJamfDeveloperTeamRule
+            )
+        }
     }
 
     private var header: some View {
@@ -78,14 +96,15 @@ struct PolicyBuilderView: View {
                 } label: {
                     Label("Add Developer Team", systemImage: "person.2.badge.plus")
                 }
-                .disabled(viewModel.isAddingApplications || viewModel.isExporting)
+                .disabled(viewModel.isPerformingPolicyOperation)
 
                 Button {
                     Task { await viewModel.addApplications() }
                 } label: {
                     Label("Add Applications", systemImage: "plus")
                 }
-                .disabled(viewModel.isAddingApplications || viewModel.isExporting)
+                .disabled(viewModel.isPerformingPolicyOperation)
+                .accessibilityIdentifier("policyBuilder.addApplications")
             }
         }
     }
@@ -101,7 +120,18 @@ struct PolicyBuilderView: View {
             }
         }
 
-        if viewModel.entries.isEmpty, !viewModel.isAddingApplications {
+        if viewModel.isPreparingJamfRule {
+            HStack(spacing: 10) {
+                ProgressView()
+                    .controlSize(.small)
+                Text("Inspecting the selected application's signing identity...")
+                    .foregroundStyle(.secondary)
+            }
+        }
+
+        if viewModel.entries.isEmpty,
+           !viewModel.isAddingApplications,
+           !viewModel.isPreparingJamfRule {
             VStack(alignment: .leading, spacing: 8) {
                 Label("No binary rules in this policy", systemImage: "list.bullet.rectangle")
                     .font(.headline)
@@ -126,13 +156,15 @@ struct PolicyBuilderView: View {
 private struct PolicyOptionsView: View {
     @Binding var alwaysAllowManagedApps: Bool
     @Binding var allowAllAppleBinaries: Bool
+    let isBusy: Bool
+    let addJamfRule: () -> Void
 
     var body: some View {
         GroupBox("Policy Options") {
             VStack(alignment: .leading, spacing: 14) {
                 option(
                     title: "Always Allow Managed Apps",
-                    description: "Permits applications that macOS recognizes as managed.",
+                    visibleDescription: "Permits applications that macOS recognizes as managed.",
                     isOn: $alwaysAllowManagedApps
                 )
 
@@ -140,9 +172,25 @@ private struct PolicyOptionsView: View {
 
                 option(
                     title: "Allow All Apple Binaries",
-                    description: "Adds Apple's documented *APPLE* special Team ID rule.",
-                    isOn: $allowAllAppleBinaries
+                    visibleDescription: PolicyBuilderCopy.allowAllAppleVisibleDescription,
+                    isOn: $allowAllAppleBinaries,
+                    accessibilityHelp: PolicyBuilderCopy.allowAllAppleAccessibilityHelp
                 )
+
+                Divider()
+
+                VStack(alignment: .leading, spacing: 3) {
+                    Button(action: addJamfRule) {
+                        Label("Allow All Jamf Binaries", systemImage: "building.2")
+                    }
+                    .disabled(isBusy)
+                    .accessibilityIdentifier("policyBuilder.allowAllJamfBinaries")
+
+                    Text("Select a signed Jamf application to detect and confirm its actual Team ID.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.top, 4)
@@ -151,15 +199,19 @@ private struct PolicyOptionsView: View {
 
     private func option(
         title: String,
-        description: String,
-        isOn: Binding<Bool>
+        visibleDescription: String?,
+        isOn: Binding<Bool>,
+        accessibilityHelp: String? = nil
     ) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Toggle(title, isOn: isOn)
-            Text(description)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
+                .help(accessibilityHelp ?? visibleDescription ?? "Changes this policy option.")
+            if let visibleDescription {
+                Text(visibleDescription)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
         }
     }
 }
@@ -178,6 +230,13 @@ private struct PolicyEntryRow: View {
                     Text(entry.displayName)
                         .font(.headline)
                         .lineLimit(1)
+                    if let sourceApplicationName = entry.sourceApplicationName {
+                        Text("Source application: \(sourceApplicationName)")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
                     if let applicationURL = entry.applicationURL {
                         Text(applicationURL.path)
                             .font(.caption)
@@ -228,6 +287,7 @@ private struct PolicyEntryRow: View {
             if let message = entry.validationState.message {
                 Label(message, systemImage: "exclamationmark.triangle")
                     .font(.caption)
+                    .accessibilityLabel("Invalid policy rule: \(message)")
             }
 
             if let details = entry.validationState.diagnosticDetails, !details.isEmpty {
@@ -266,6 +326,63 @@ private struct PolicyEntryRow: View {
     }
 }
 
+enum PolicyBuilderCopy {
+    static let allowAllAppleVisibleDescription: String? = nil
+    static let allowAllAppleAccessibilityHelp = "Uses Apple's documented *APPLE* special Team ID rule."
+}
+
+private struct JamfDeveloperRuleConfirmationView: View {
+    let candidate: JamfDeveloperTeamRuleCandidate
+    let confirm: () -> Bool
+    let cancel: () -> Void
+
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 18) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Allow All Jamf Binaries")
+                    .font(.title2)
+                    .fontWeight(.semibold)
+                Text("Allow all binaries signed by Team ID \(candidate.teamIdentifier)?")
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Grid(alignment: .leading, horizontalSpacing: 14, verticalSpacing: 8) {
+                PolicyValueRow(label: "Team ID", value: candidate.teamIdentifier)
+                PolicyValueRow(label: "Source Application", value: candidate.sourceApplicationName)
+                PolicyValueRow(
+                    label: "Signing Authority",
+                    value: candidate.signingAuthority ?? "Unavailable"
+                )
+            }
+
+            Label(
+                "This Team-ID-only rule may allow every binary signed by that developer, not only the selected application.",
+                systemImage: "exclamationmark.triangle"
+            )
+            .font(.callout)
+            .fixedSize(horizontal: false, vertical: true)
+
+            HStack {
+                Spacer()
+                Button("Cancel") {
+                    cancel()
+                    dismiss()
+                }
+                Button("Add Rule") {
+                    if confirm() {
+                        dismiss()
+                    }
+                }
+                .keyboardShortcut(.defaultAction)
+            }
+        }
+        .padding(24)
+        .frame(width: 460)
+    }
+}
+
 private struct PolicyValueRow: View {
     let label: String
     let value: String
@@ -278,7 +395,7 @@ private struct PolicyValueRow: View {
             Text(value)
                 .font(.caption)
                 .textSelection(.enabled)
-                .lineLimit(1)
+                .lineLimit(2)
                 .truncationMode(.middle)
         }
     }
@@ -287,13 +404,21 @@ private struct PolicyValueRow: View {
 private struct PolicySafetyWarningsView: View {
     let warnings: [String]
 
+    @ViewBuilder
     var body: some View {
-        VStack(alignment: .leading, spacing: 7) {
-            ForEach(warnings, id: \.self) { warning in
-                Label(warning, systemImage: "exclamationmark.triangle.fill")
-                    .font(.callout)
-                    .fixedSize(horizontal: false, vertical: true)
+        if !warnings.isEmpty {
+            VStack(alignment: .leading, spacing: 7) {
+                ForEach(warnings, id: \.self) { warning in
+                    Label(warning, systemImage: "exclamationmark.triangle.fill")
+                        .font(.callout)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
+            .padding(10)
+            .background(Color(nsColor: .controlBackgroundColor))
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .accessibilityElement(children: .combine)
+            .accessibilityLabel("Policy safety warnings: \(warnings.joined(separator: " "))")
         }
     }
 }
@@ -323,12 +448,14 @@ private struct PolicyBuilderMessagesView: View {
                 Label(workflowErrorMessage, systemImage: "xmark.circle")
                     .font(.callout)
                     .foregroundStyle(.red)
+                    .accessibilityLabel("Policy builder error: \(workflowErrorMessage)")
             }
 
             if let exportStatusMessage {
                 Label(exportStatusMessage, systemImage: "checkmark.circle")
                     .font(.callout)
                     .foregroundStyle(.green)
+                    .accessibilityLabel("Policy builder status: \(exportStatusMessage)")
             }
         }
     }
@@ -352,11 +479,13 @@ private struct DeclarationPreviewView: View {
                     Label("Copy JSON", systemImage: "doc.on.doc")
                 }
                 .disabled(!canExport)
+                .accessibilityIdentifier("policyBuilder.copyJSON")
 
                 Button(action: exportAction) {
                     Label("Export JSON", systemImage: "square.and.arrow.up")
                 }
                 .disabled(!canExport)
+                .accessibilityIdentifier("policyBuilder.exportJSON")
             }
 
             if let json {
